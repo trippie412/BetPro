@@ -64,12 +64,12 @@ def create_app(config_name=None):
 
     # Initialize database only when not running on Vercel
     with app.app_context():
-    from app import models
+         from app import models
 
-    db.create_all()
+         db.create_all()
 
-    if not os.environ.get("VERCEL"):
-        _seed_initial_data(app)
+         if not os.environ.get("VERCEL"):
+             _seed_initial_data(app)
 
     return app
 
