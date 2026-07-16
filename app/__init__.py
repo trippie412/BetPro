@@ -38,7 +38,7 @@ def create_app(config_name=None):
     limiter.init_app(app)
 
     # Only initialize Flask-Session when using filesystem sessions
-    if app.config.get("SESSION_TYPE"):
+    if not os.environ.get("VERCEL"):
         sess.init_app(app)
     
      # Register blueprints
