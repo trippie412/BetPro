@@ -17,6 +17,11 @@ def create_app(config_name=None):
     static_folder="../static"
 )
     app.config.from_object(config[config_name])
+    print("=" * 50)
+    print("CONFIG NAME:", config_name)
+    print("DATABASE URI:", app.config["SQLALCHEMY_DATABASE_URI"])
+    print("VERCEL:", os.environ.get("VERCEL"))
+    print("=" * 50)
     config[config_name].init_app(app)
 
     # Ensure instance folder exists
