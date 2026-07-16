@@ -99,22 +99,36 @@ class TestingConfig(Config):
 class ProductionConfig(Config):
     """Production environment configuration."""
     DEBUG = False
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL', 'postgresql://betpro_user:strongpassword@localhost:5432/betpro_db')
+    SQLALCHEMY_DATABASE_URI = os.environ.get(
+        'DATABASE_URL',
+        'postgresql://betpro_user:strongpassword@localhost:5432/betpro_db'
+    )
     SESSION_COOKIE_SECURE = True
 
     @classmethod
     def init_app(cls, app):
         Config.init_app(app)
-        # Production-specific logging
-        import logging
-        from logging.handlers import RotatingFileHandler
-        file_handler = RotatingFileHandler('logs/betpro.log', maxBytes=10 * 1024 * 1024, backupCount=10)
-        file_handler.setFormatter(logging.Formatter('%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'))
-        file_handler.setLevel(logging.INFO)
-        app.logger.addHandler(file_handler)
-        app.logger.setLevel(logging.INFO)
-        app.logger.info('BetPro startup')
 
+        import logging
+
+        app.logger.setLevel(logging.INFO)
+
+        # Don't write log files on Vercel
+        if not os.environ.get("VERCEL"):
+            from logging.handlers import RotatingFileHandler
+
+            file_handler = RotatingFileHandler(
+                "logs/betpro.log",
+                maxBytes=10 * 1024 * 1024,
+                backupCount=10,
+            )
+            file_handler.setFormatter(logging.Formatter(
+                "%(asctime)s %(levelname)s: %(message)s"
+            ))
+            app.logger.addHandler(file_handler)
+
+        app.logger.info("BetPro startup")
+        
 
 config = {
     'development': DevelopmentConfig,
