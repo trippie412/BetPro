@@ -1,0 +1,39 @@
+{% extends "layouts/base.html" %}
+{% block title %}Withdraw - BetPro{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="glass-card p-4">
+            <h4 class="fw-bold mb-1"><i class="fas fa-arrow-up text-danger me-2"></i>Withdraw Funds</h4>
+            <p class="text-muted small mb-4">Minimum withdrawal: KSh 100 | Available balance: KSh {{ "%0.2f"|format(wallet.balance|default(0)) }}</p>
+            <form method="POST" action="">
+                {{ form.hidden_tag() }}
+                <div class="mb-3">
+                    <label class="form-label text-muted small">Amount (KES)</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-dark text-light border-secondary">KSh</span>
+                        {{ form.amount(class="form-control form-control-dark", placeholder="Enter amount") }}
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-muted small">Payment Method</label>
+                    {{ form.payment_method(class="form-control form-control-dark") }}
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-muted small">Phone Number</label>
+                    {{ form.phone_number(class="form-control form-control-dark", placeholder="e.g. 0712345678") }}
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-muted small">Account Name</label>
+                    {{ form.account_name(class="form-control form-control-dark", placeholder="Full name on account") }}
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-muted small">Account Number</label>
+                    {{ form.account_number(class="form-control form-control-dark", placeholder="Account or till number") }}
+                </div>
+                {{ form.submit(class="btn btn-danger w-100 py-2 fw-bold") }}
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

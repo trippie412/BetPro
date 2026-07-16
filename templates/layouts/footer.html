@@ -1,0 +1,26 @@
+<footer class="py-4" style="background: var(--darker-bg); border-top: 1px solid rgba(255,255,255,0.05);">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="d-flex align-items-center mb-2">
+                    <div class="brand-icon me-2" style="width: 32px; height: 32px; font-size: 16px;"><i class="fas fa-trophy text-dark"></i></div>
+                    <span class="brand-name fs-5">BetPro</span>
+                </div>
+                <p class="text-muted small">Premium sports betting platform. Bet responsibly.</p>
+            </div>
+            <div class="col-md-4">
+                <h6 class="fw-bold mb-2">Quick Links</h6>
+                <div class="d-flex flex-column gap-1">
+                    <a href="{{ url_for('auth.login') }}" class="text-muted small text-decoration-none">Sign In</a>
+                    <a href="{{ url_for('auth.register') }}" class="text-muted small text-decoration-none">Register</a>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <h6 class="fw-bold mb-2">Responsible Gaming</h6>
+                <p class="text-muted small mb-0">Must be 18+ to bet. Know your limits. Play responsibly.</p>
+            </div>
+        </div>
+        <hr class="border-secondary border-opacity-25 my-3" />
+        <p class="text-center text-muted small mb-0">&copy; 2026 BetPro. All rights reserved.</p>
+    </div>
+</footer>

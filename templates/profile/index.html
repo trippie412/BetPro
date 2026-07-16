@@ -1,0 +1,54 @@
+{% extends "layouts/base.html" %}
+{% block title %}My Profile - BetPro{% endblock %}
+{% block content %}
+<div class="row">
+    <div class="col-md-4">
+        <div class="glass-card p-4 text-center">
+            <img src="{{ url_for('static', filename='uploads/profile_pictures/' + (current_user.profile_picture or 'default.png')) }}" class="rounded-circle mb-3" width="120" height="120" style="object-fit: cover; border: 3px solid var(--gold);" />
+            <h5 class="fw-bold">{{ current_user.full_name or current_user.username }}</h5>
+            <p class="text-muted small">@{{ current_user.username }}</p>
+            <div class="d-flex justify-content-center gap-2 mb-3">
+                {% if current_user.email_verified %}<span class="badge bg-success">Email Verified</span>{% else %}<span class="badge bg-warning text-dark">Email Unverified</span>{% endif %}
+            </div>
+            <div class="d-grid gap-2">
+                <a href="{{ url_for('profile.edit') }}" class="btn btn-gold btn-sm"><i class="fas fa-edit me-1"></i> Edit Profile</a>
+                <a href="{{ url_for('profile.change_password') }}" class="btn btn-outline-secondary btn-sm"><i class="fas fa-key me-1"></i> Change Password</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-8">
+        <div class="glass-card p-4 mb-4">
+            <h5 class="fw-bold mb-3"><i class="fas fa-info-circle text-gold me-2"></i>Account Information</h5>
+            <div class="row g-3">
+                <div class="col-6"><div class="text-muted small">Username</div><div class="fw-bold">{{ current_user.username }}</div></div>
+                <div class="col-6"><div class="text-muted small">Full Name</div><div class="fw-bold">{{ current_user.full_name or '-' }}</div></div>
+                <div class="col-6"><div class="text-muted small">Email</div><div class="fw-bold">{{ current_user.email }}</div></div>
+                <div class="col-6"><div class="text-muted small">Phone</div><div class="fw-bold">{{ current_user.phone or '-' }}</div></div>
+                <div class="col-6"><div class="text-muted small">Country</div><div class="fw-bold">{{ current_user.country or '-' }}</div></div>
+                <div class="col-6"><div class="text-muted small">Member Since</div><div class="fw-bold">{{ current_user.created_at.strftime('%d %B %Y') }}</div></div>
+                <div class="col-6"><div class="text-muted small">Last Login</div><div class="fw-bold">{{ current_user.last_login.strftime('%d %B %Y %H:%M') if current_user.last_login else 'First time' }}</div></div>
+            </div>
+        </div>
+        <div class="row g-3">
+            <div class="col-md-6">
+                <div class="glass-card p-4">
+                    <h5 class="fw-bold mb-3"><i class="fas fa-ticket-alt text-gold me-2"></i>Betting Stats</h5>
+                    <div class="d-flex justify-content-between mb-2"><span class="text-muted small">Total Bets</span><span class="fw-bold">{{ current_user.total_bets }}</span></div>
+                    <div class="d-flex justify-content-between mb-2"><span class="text-muted small">Won</span><span class="fw-bold text-success">{{ current_user.total_won_bets }}</span></div>
+                    <div class="d-flex justify-content-between mb-2"><span class="text-muted small">Lost</span><span class="fw-bold text-danger">{{ current_user.total_lost_bets }}</span></div>
+                    <div class="d-flex justify-content-between"><span class="text-muted small">Win Rate</span><span class="fw-bold text-gold">{{ current_user.win_rate }}%</span></div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="glass-card p-4">
+                    <h5 class="fw-bold mb-3"><i class="fas fa-coins text-gold me-2"></i>Financial Summary</h5>
+                    <div class="d-flex justify-content-between mb-2"><span class="text-muted small">Total Deposited</span><span class="fw-bold text-success">KSh {{ "%0.2f"|format(current_user.total_deposits) }}</span></div>
+                    <div class="d-flex justify-content-between mb-2"><span class="text-muted small">Total Withdrawn</span><span class="fw-bold text-danger">KSh {{ "%0.2f"|format(current_user.total_withdrawals) }}</span></div>
+                    <div class="d-flex justify-content-between mb-2"><span class="text-muted small">Cash Balance</span><span class="fw-bold text-warning">KSh {{ "%0.2f"|format(current_user.get_wallet_balance()) }}</span></div>
+                    <div class="d-flex justify-content-between"><span class="text-muted small">Bonus Balance</span><span class="fw-bold" style="color: #0dcaf0;">KSh {{ "%0.2f"|format(current_user.get_bonus_balance()) }}</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

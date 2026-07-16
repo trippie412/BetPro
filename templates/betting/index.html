@@ -1,0 +1,145 @@
+{% extends "layouts/base.html" %}
+{% block title %}Place Bet - BetPro{% endblock %}
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="fw-bold mb-1"><i class="fas fa-futbol text-gold me-2"></i>Place a Bet</h4>
+        <p class="text-muted small mb-0">Click on odds to add selections to your bet slip</p>
+    </div>
+    <div>
+        <button class="btn btn-gold btn-sm" onclick="openBetSlip()">
+            <i class="fas fa-receipt me-1"></i> Bet Slip <span class="badge bg-dark ms-1" id="betslipCountHeader">0</span>
+        </button>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-9">
+        <!-- Sports Filter -->
+        <div class="glass-card p-3 mb-4">
+            <div class="d-flex gap-2 flex-wrap">
+                <a href="{{ url_for('betting.index') }}" class="btn btn-sm {% if not request.args.get('sport') %}btn-gold{% else %}btn-outline-secondary{% endif %}">All Sports</a>
+                {% for sport in sports %}
+                <a href="{{ url_for('betting.index', sport=sport.slug) }}" class="btn btn-sm {% if request.args.get('sport') == sport.slug %}btn-gold{% else %}btn-outline-secondary{% endif %}">
+                    <i class="fas {{ sport.icon }} me-1"></i> {{ sport.name }}
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Matches by League -->
+        {% for league_name, league_matches in matches_by_league.items() %}
+        <div class="glass-card mb-3 animate-fade-in">
+            <div class="p-3 border-bottom border-secondary border-opacity-10 d-flex justify-content-between align-items-center">
+                <h6 class="fw-bold mb-0"><i class="fas fa-trophy text-gold me-2"></i>{{ league_name }}</h6>
+                <span class="text-muted small">{{ league_matches|length }} matches</span>
+            </div>
+            {% for match in league_matches %}
+            <div class="match-card border-bottom border-secondary border-opacity-10" data-match-id="{{ match.id }}">
+                <div class="row align-items-center g-2">
+                    <div class="col-12 col-md-4">
+                        <div class="d-flex align-items-center gap-2">
+                            {% if match.is_live %}
+                                <span class="live-badge">LIVE</span>
+                            {% endif %}
+                            <span class="match-time">{{ match.match_date.strftime('%d %b %H:%M') }}</span>
+                        </div>
+                        <div class="fw-bold mt-1">
+                            <div class="team-name">{{ match.home_team }}</div>
+                            <div class="team-name text-muted">vs</div>
+                            <div class="team-name">{{ match.away_team }}</div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-8">
+                        <div class="d-flex justify-content-end gap-2 flex-wrap">
+                            {% set odds = match.main_odds %}
+                            {% if odds %}
+                                <button class="team-odds" data-match-id="{{ match.id }}"
+                                    data-match-name="{{ match.home_team }} vs {{ match.away_team }}"
+                                    data-selection-type="home_win" data-selection-label="1 - {{ match.home_team }}"
+                                    data-odds="{{ odds.home_win }}">
+                                    <div class="text-muted" style="font-size: 9px;">1</div>
+                                    <div>{{ "%.2f"|format(odds.home_win) }}</div>
+                                </button>
+                                {% if odds.draw %}
+                                <button class="team-odds" data-match-id="{{ match.id }}"
+                                    data-match-name="{{ match.home_team }} vs {{ match.away_team }}"
+                                    data-selection-type="draw" data-selection-label="X - Draw"
+                                    data-odds="{{ odds.draw }}">
+                                    <div class="text-muted" style="font-size: 9px;">X</div>
+                                    <div>{{ "%.2f"|format(odds.draw) }}</div>
+                                </button>
+                                {% endif %}
+                                <button class="team-odds" data-match-id="{{ match.id }}"
+                                    data-match-name="{{ match.home_team }} vs {{ match.away_team }}"
+                                    data-selection-type="away_win" data-selection-label="2 - {{ match.away_team }}"
+                                    data-odds="{{ odds.away_win }}">
+                                    <div class="text-muted" style="font-size: 9px;">2</div>
+                                    <div>{{ "%.2f"|format(odds.away_win) }}</div>
+                                </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="glass-card p-5 text-center">
+            <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+            <h5>No matches available</h5>
+            <p class="text-muted">Check back later for upcoming matches.</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="col-lg-3 d-none d-lg-block">
+        <!-- Bet Slip Side Panel (inline on desktop) -->
+        <div class="glass-card position-sticky" style="top: 80px;">
+            {% include 'betting/bet_slip.html' %}
+        </div>
+    </div>
+</div>
+
+<!-- Mobile Floating Bet Slip Button -->
+<button class="floating-betslip-btn" onclick="toggleBetSlip()" id="betslipFloatingBtn">
+    <i class="fas fa-receipt"></i>
+    <span class="badge bg-warning text-dark" id="betslipFloatingCount">{{ bet_slip_selections|length if bet_slip_selections is defined else 0 }}</span>
+</button>
+
+<!-- Offcanvas Bet Slip for Mobile -->
+<div class="offcanvas offcanvas-end bg-dark" tabindex="-1" id="betslipOffcanvas">
+    <div class="offcanvas-header border-bottom border-secondary">
+        <h5 class="offcanvas-title"><i class="fas fa-receipt text-gold me-2"></i>Bet Slip</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
+    </div>
+    <div class="offcanvas-body">
+        {% include 'betting/bet_slip.html' %}
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Sync bet slip count in header
+document.addEventListener('DOMContentLoaded', function() {
+    function updateHeaderCount() {
+        var el = document.getElementById('betslipCountHeader');
+        if (el) {
+            try {
+                var saved = sessionStorage.getItem('betpro_betslip');
+                var selections = saved ? JSON.parse(saved) : [];
+                el.textContent = selections.length;
+            } catch(e) {
+                el.textContent = '0';
+            }
+        }
+    }
+    updateHeaderCount();
+    // Poll for updates
+    setInterval(updateHeaderCount, 1000);
+});
+</script>
+{% endblock %}

@@ -1,0 +1,96 @@
+<!-- Top Navigation Bar -->
+<nav class="topbar">
+    <div class="d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center">
+            <button class="btn btn-link text-light me-2" id="sidebarToggle" onclick="toggleSidebar()">
+                <i class="fas fa-bars fa-lg"></i>
+            </button>
+            <div class="topbar-search d-none d-md-block">
+                <form action="{{ url_for('matches.index') }}" method="GET" class="d-flex">
+                    <div class="input-group input-group-sm">
+                        <input type="text" name="search" class="form-control form-control-sm bg-dark border-secondary text-light" placeholder="Search matches..." style="width: 250px;" />
+                        <button class="btn btn-outline-secondary" type="submit"><i class="fas fa-search"></i></button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div class="d-flex align-items-center gap-3">
+            <!-- Live Matches Indicator -->
+            {% if live_matches is defined and live_matches %}
+                <div class="live-indicator d-none d-md-flex align-items-center">
+                    <span class="live-dot"></span>
+                    <span class="text-danger small fw-bold">{{ live_matches|length }} LIVE</span>
+                </div>
+            {% endif %}
+            <!-- Notifications -->
+            <div class="dropdown">
+                <button class="btn btn-link text-light position-relative" data-bs-toggle="dropdown">
+                    <i class="fas fa-bell fa-lg"></i>
+                    {% if unread_notifications > 0 %}
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-warning text-dark" style="font-size: 10px;">
+                            {{ unread_notifications }}
+                        </span>
+                    {% endif %}
+                </button>
+                <div class="dropdown-menu dropdown-menu-end dropdown-menu-dark glass-card" style="width: 320px;">
+                    <div class="dropdown-header d-flex justify-content-between">
+                        <span class="fw-bold">Notifications</span>
+                        <a href="{{ url_for('dashboard.mark_all_read') }}" class="text-warning small">Mark all read</a>
+                    </div>
+                    <div class="dropdown-divider"></div>
+                    {% set recent_notifs = current_user.notifications.limit(5).all() %}
+                    {% for notif in recent_notifs %}
+                        <a class="dropdown-item {% if not notif.is_read %}bg-dark{% endif %}" href="#">
+                            <div class="d-flex">
+                                <div class="me-2">
+                                    {% if notif.notification_type == 'deposit' %}
+                                        <i class="fas fa-coins text-success"></i>
+                                    {% elif notif.notification_type == 'withdrawal' %}
+                                        <i class="fas fa-hand-holding-usd text-info"></i>
+                                    {% elif notif.notification_type == 'bet' %}
+                                        <i class="fas fa-ticket-alt text-primary"></i>
+                                    {% elif notif.notification_type == 'bonus' %}
+                                        <i class="fas fa-gift text-warning"></i>
+                                    {% else %}
+                                        <i class="fas fa-bell text-muted"></i>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <div class="small fw-bold">{{ notif.title }}</div>
+                                    <div class="text-muted" style="font-size: 11px;">{{ notif.message[:80] }}{% if notif.message|length > 80 %}...{% endif %}</div>
+                                    <small class="text-muted">{{ notif.created_at.strftime('%d %b %H:%M') }}</small>
+                                </div>
+                            </div>
+                        </a>
+                    {% else %}
+                        <div class="text-center p-3 text-muted">
+                            <i class="fas fa-bell-slash fa-2x mb-2"></i>
+                            <p class="small mb-0">No notifications yet</p>
+                        </div>
+                    {% endfor %}
+                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item text-center small" href="{{ url_for('dashboard.notifications') }}">View All</a>
+                </div>
+            </div>
+            <!-- User Menu -->
+            <div class="dropdown">
+                <button class="btn btn-link text-light dropdown-toggle d-flex align-items-center" data-bs-toggle="dropdown">
+                    <img src="{{ url_for('static', filename='uploads/profile_pictures/' + (current_user.profile_picture if current_user.profile_picture else 'default.png')) }}"
+                         alt="" class="rounded-circle me-1" width="30" height="30" />
+                    <span class="d-none d-md-inline">{{ current_user.username }}</span>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark glass-card">
+                    <li><a class="dropdown-item" href="{{ url_for('profile.index') }}"><i class="fas fa-user me-2"></i>Profile</a></li>
+                    <li><a class="dropdown-item" href="{{ url_for('wallet.index') }}"><i class="fas fa-wallet me-2"></i>Wallet</a></li>
+                    <li><a class="dropdown-item" href="{{ url_for('betting.history') }}"><i class="fas fa-history me-2"></i>Bet History</a></li>
+                    {% if current_user.is_admin or current_user.has_role('admin') %}
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item text-warning" href="{{ url_for('admin.index') }}"><i class="fas fa-shield-alt me-2"></i>Admin Panel</a></li>
+                    {% endif %}
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item text-danger" href="{{ url_for('auth.logout') }}"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</nav>

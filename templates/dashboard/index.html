@@ -1,0 +1,270 @@
+{% extends "layouts/base.html" %}
+{% block title %}Dashboard - BetPro{% endblock %}
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="fw-bold mb-1">Welcome back, {{ current_user.full_name or current_user.username }}!</h4>
+        <p class="text-muted small mb-0">{{ current_user.email }}</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{{ url_for('wallet.deposit') }}" class="btn btn-success btn-sm"><i class="fas fa-arrow-down me-1"></i> Deposit</a>
+        <a href="{{ url_for('wallet.withdraw') }}" class="btn btn-danger btn-sm"><i class="fas fa-arrow-up me-1"></i> Withdraw</a>
+        <a href="{{ url_for('betting.index') }}" class="btn btn-gold btn-sm"><i class="fas fa-futbol me-1"></i> Bet Now</a>
+    </div>
+</div>
+
+<!-- Stats Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3 animate-fade-in animate-fade-in-delay-1">
+        <div class="glass-card stat-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="stat-label">Cash Balance</div>
+                    <div class="stat-value text-warning">KSh {{ "%0.2f"|format(wallet.balance|default(0)) }}</div>
+                </div>
+                <div class="stat-icon" style="background: rgba(255, 215, 0, 0.1);">
+                    <i class="fas fa-wallet text-warning"></i>
+                </div>
+            </div>
+            <div class="stat-bg-icon"><i class="fas fa-coins"></i></div>
+        </div>
+    </div>
+    <div class="col-md-3 animate-fade-in animate-fade-in-delay-2">
+        <div class="glass-card stat-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="stat-label">Bonus Balance</div>
+                    <div class="stat-value" style="color: #0dcaf0;">KSh {{ "%0.2f"|format(wallet.bonus_balance|default(0)) }}</div>
+                </div>
+                <div class="stat-icon" style="background: rgba(13, 202, 240, 0.1);">
+                    <i class="fas fa-gift" style="color: #0dcaf0;"></i>
+                </div>
+            </div>
+            <div class="stat-bg-icon"><i class="fas fa-gem"></i></div>
+        </div>
+    </div>
+    <div class="col-md-3 animate-fade-in animate-fade-in-delay-3">
+        <div class="glass-card stat-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="stat-label">Total Bets</div>
+                    <div class="stat-value text-primary">{{ total_bets|default(0) }}</div>
+                    <div class="text-muted" style="font-size: 11px;">
+                        Won: {{ won_bets|default(0) }} | Lost: {{ lost_bets|default(0) }}
+                    </div>
+                </div>
+                <div class="stat-icon" style="background: rgba(13, 110, 253, 0.1);">
+                    <i class="fas fa-ticket-alt text-primary"></i>
+                </div>
+            </div>
+            <div class="stat-bg-icon"><i class="fas fa-chart-bar"></i></div>
+        </div>
+    </div>
+    <div class="col-md-3 animate-fade-in animate-fade-in-delay-4">
+        <div class="glass-card stat-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="stat-label">Win Rate</div>
+                    <div class="stat-value text-success">{{ "%.1f"|format(won_bets/(total_bets if total_bets > 0 else 1)*100) }}%</div>
+                    <div class="text-muted" style="font-size: 11px;">{{ pending_bets|default(0) }} pending</div>
+                </div>
+                <div class="stat-icon" style="background: rgba(25, 135, 84, 0.1);">
+                    <i class="fas fa-percentage text-success"></i>
+                </div>
+            </div>
+            <div class="stat-bg-icon"><i class="fas fa-arrow-up"></i></div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Chart -->
+    <div class="col-lg-8">
+        <div class="glass-card p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold mb-0"><i class="fas fa-chart-line text-gold me-2"></i>7-Day Activity</h5>
+                <div class="btn-group btn-group-sm">
+                    <button class="btn btn-outline-secondary active">Deposits</button>
+                    <button class="btn btn-outline-secondary">Bets</button>
+                </div>
+            </div>
+            <div class="chart-container">
+                <canvas id="dashboardChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Recent Bets -->
+        <div class="glass-card mt-4 p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold mb-0"><i class="fas fa-history text-gold me-2"></i>Recent Bets</h5>
+                <a href="{{ url_for('betting.history') }}" class="text-gold small text-decoration-none">View All</a>
+            </div>
+            {% if recent_bets %}
+                <div class="table-responsive">
+                    <table class="table table-dark-custom table-responsive-stack mb-0">
+                        <thead>
+                            <tr>
+                                <th>Reference</th>
+                                <th>Type</th>
+                                <th>Stake</th>
+                                <th>Odds</th>
+                                <th>Potential</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for bet in recent_bets %}
+                            <tr>
+                                <td data-label="Reference"><span class="small text-muted">{{ bet.bet_reference[:12] }}...</span></td>
+                                <td data-label="Type"><span class="badge bg-dark">{{ bet.bet_type }}</span></td>
+                                <td data-label="Stake"><span class="fw-bold">KSh {{ "%0.2f"|format(bet.stake) }}</span></td>
+                                <td data-label="Odds"><span class="text-gold fw-bold">{{ "%.2f"|format(bet.total_odds) }}</span></td>
+                                <td data-label="Potential"><span class="fw-bold">KSh {{ "%0.2f"|format(bet.potential_winnings) }}</span></td>
+                                <td data-label="Status">
+                                    <span class="status-badge status-{{ bet.status }}">{{ bet.status }}</span>
+                                </td>
+                                <td data-label="Date"><span class="small text-muted">{{ bet.created_at.strftime('%d %b %H:%M') }}</span></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-4 text-muted">
+                    <i class="fas fa-ticket-alt fa-2x mb-2"></i>
+                    <p class="mb-0">No bets placed yet.</p>
+                    <a href="{{ url_for('betting.index') }}" class="btn btn-gold btn-sm mt-2">Place Your First Bet</a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Right Column -->
+    <div class="col-lg-4">
+        <!-- Live Matches -->
+        {% if live_matches %}
+        <div class="glass-card p-4 mb-4">
+            <h5 class="fw-bold mb-3"><span class="live-dot me-1"></span> Live Now</h5>
+            {% for match in live_matches %}
+            <div class="d-flex justify-content-between align-items-center py-2 border-bottom border-secondary border-opacity-10">
+                <div>
+                    <div class="fw-bold small">{{ match.home_team }} vs {{ match.away_team }}</div>
+                    <div class="text-muted" style="font-size: 11px;">{{ match.league.name if match.league else '' }}</div>
+                </div>
+                <a href="{{ url_for('matches.detail', match_id=match.id) }}" class="btn btn-sm btn-outline-danger">Bet Live</a>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Recent Transactions -->
+        <div class="glass-card p-4 mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold mb-0"><i class="fas fa-exchange-alt text-gold me-2"></i>Recent Transactions</h5>
+                <a href="{{ url_for('wallet.transactions') }}" class="text-gold small text-decoration-none">View All</a>
+            </div>
+            {% if recent_transactions %}
+                {% for txn in recent_transactions %}
+                <div class="d-flex justify-content-between align-items-center py-2 border-bottom border-secondary border-opacity-10">
+                    <div>
+                        <div class="fw-bold small">
+                            {% if txn.transaction_type == 'deposit' %}<i class="fas fa-arrow-down text-success me-1"></i>
+                            {% elif txn.transaction_type == 'withdrawal' %}<i class="fas fa-arrow-up text-danger me-1"></i>
+                            {% elif txn.transaction_type == 'bet_placed' %}<i class="fas fa-ticket-alt text-primary me-1"></i>
+                            {% elif txn.transaction_type == 'bet_won' %}<i class="fas fa-trophy text-gold me-1"></i>
+                            {% elif txn.transaction_type == 'bonus' %}<i class="fas fa-gift text-info me-1"></i>
+                            {% endif %}
+                            {{ txn.description[:30] }}{% if txn.description|length > 30 %}...{% endif %}
+                        </div>
+                        <div class="text-muted" style="font-size: 11px;">{{ txn.created_at.strftime('%d %b %H:%M') }}</div>
+                    </div>
+                    <div class="fw-bold {% if txn.transaction_type in ['deposit', 'bet_won', 'bonus'] %}text-success{% else %}text-danger{% endif %}">
+                        {% if txn.transaction_type in ['deposit', 'bet_won', 'bonus'] %}+{% else %}-{% endif %}
+                        KSh {{ "%0.2f"|format(txn.amount) }}
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="text-center py-3 text-muted">
+                    <i class="fas fa-receipt fa-2x mb-2"></i>
+                    <p class="small mb-0">No transactions yet</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Featured Matches -->
+        {% if featured_matches %}
+        <div class="glass-card p-4">
+            <h5 class="fw-bold mb-3"><i class="fas fa-star text-gold me-2"></i>Featured</h5>
+            {% for match in featured_matches %}
+            <div class="match-card glass-card-static p-3 mb-2">
+                <span class="featured-badge">Featured</span>
+                <div class="small text-muted mb-1">{{ match.league.name if match.league else '' }}</div>
+                <div class="fw-bold small">{{ match.home_team }} vs {{ match.away_team }}</div>
+                <div class="d-flex justify-content-between align-items-center mt-2">
+                    <span class="text-muted" style="font-size: 11px;">{{ match.match_date.strftime('%d %b %H:%M') }}</span>
+                    <a href="{{ url_for('matches.detail', match_id=match.id) }}" class="btn btn-sm btn-outline-gold text-gold border-gold">View Odds</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var ctx = document.getElementById('dashboardChart');
+    if (ctx) {
+        new Chart(ctx.getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: {{ chart_labels|tojson }},
+                datasets: [{
+                    label: 'Deposits (KES)',
+                    data: {{ chart_deposits|tojson }},
+                    borderColor: '#ffd700',
+                    backgroundColor: 'rgba(255, 215, 0, 0.1)',
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: '#ffd700',
+                    pointRadius: 4
+                }, {
+                    label: 'Bets (KES)',
+                    data: {{ chart_bets|tojson }},
+                    borderColor: '#0d6efd',
+                    backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: '#0d6efd',
+                    pointRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        labels: { color: '#9aa0a6', font: { family: 'Inter', size: 12 }, usePointStyle: true }
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: { color: '#9aa0a6', font: { family: 'Inter', size: 11 } },
+                        grid: { color: 'rgba(255,255,255,0.05)' }
+                    },
+                    y: {
+                        ticks: { color: '#9aa0a6', font: { family: 'Inter', size: 11 }, callback: function(v) { return 'KSh ' + v; } },
+                        grid: { color: 'rgba(255,255,255,0.05)' }
+                    }
+                }
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

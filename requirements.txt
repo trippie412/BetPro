@@ -1,0 +1,39 @@
+# BetPro - Premium Sports Betting Platform
+# Core
+Flask==3.1.0
+Flask-SQLAlchemy==3.1.1
+Flask-Login==0.6.3
+Flask-Migrate==4.0.7
+Flask-WTF==1.2.2
+Flask-Mail==0.9.1
+Flask-Limiter==3.8.0
+Flask-Session==0.8.0
+
+# Database
+SQLAlchemy==2.0.36
+alembic==1.14.0
+
+# Forms & Validation
+WTForms==3.2.1
+email-validator==2.2.0
+
+# Security
+Werkzeug==3.1.3
+bcrypt==4.2.1
+cryptography==44.0.0
+
+# Image Processing
+Pillow==11.1.0
+
+# Server
+gunicorn==23.0.0
+
+# HTTP
+requests==2.32.3
+
+# Environment
+python-dotenv==1.0.1
+
+# Production
+psycopg2-binary==2.9.10
+redis==5.2.1

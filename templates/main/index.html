@@ -1,0 +1,176 @@
+{% extends "layouts/base.html" %}
+{% block title %}BetPro - Premium Sports Betting Platform{% endblock %}
+{% block meta_description %}BetPro - The ultimate sports betting platform. Bet on football, basketball, tennis, rugby, eSports and more. Join now and get KES 1,000 welcome bonus!{% endblock %}
+{% block content %}
+
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="container position-relative z-1">
+        <div class="row align-items-center min-vh-100">
+            <div class="col-lg-7 animate-fade-in">
+                <div class="mb-3">
+                    <span class="badge bg-warning text-dark px-3 py-2 rounded-pill fw-bold">
+                        <i class="fas fa-gift me-1"></i> KES 1,000 WELCOME BONUS
+                    </span>
+                </div>
+                <h1 class="hero-title">
+                    Premium Sports<br/>
+                    <span class="highlight">Betting Experience</span>
+                </h1>
+                <p class="hero-subtitle">
+                    Join thousands of bettors. Place bets on football, basketball, tennis, rugby, eSports and more.
+                    Enjoy competitive odds, instant deposits, and fast withdrawals.
+                </p>
+                <div class="hero-buttons d-flex flex-wrap gap-3">
+                    <a href="{{ url_for('auth.register') }}" class="btn btn-gold btn-lg px-5 py-3 fw-bold">
+                        <i class="fas fa-user-plus me-2"></i> Get Started
+                    </a>
+                    <a href="{{ url_for('auth.login') }}" class="btn btn-outline-light btn-lg px-5 py-3 fw-bold">
+                        <i class="fas fa-sign-in-alt me-2"></i> Sign In
+                    </a>
+                </div>
+                <div class="d-flex gap-4 mt-4">
+                    <div><i class="fas fa-check-circle text-gold me-1"></i> <span class="text-muted small">Licensed & Regulated</span></div>
+                    <div><i class="fas fa-lock text-gold me-1"></i> <span class="text-muted small">Secure Payments</span></div>
+                    <div><i class="fas fa-headset text-gold me-1"></i> <span class="text-muted small">24/7 Support</span></div>
+                </div>
+            </div>
+            <div class="col-lg-5 d-none d-lg-flex justify-content-center animate-slide-right">
+                <div class="position-relative">
+                    <div class="glass-card p-5 text-center" style="width: 380px;">
+                        <div class="display-1 mb-3">
+                            <i class="fas fa-trophy text-gold"></i>
+                        </div>
+                        <h3 class="fw-bold mb-2">Place Your Bets</h3>
+                        <p class="text-muted mb-4">On your favorite sports and teams</p>
+                        <div class="d-flex justify-content-around mb-3">
+                            <div class="text-center">
+                                <div class="text-gold fw-bold fs-4">2.10</div>
+                                <small class="text-muted">Home</small>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-gold fw-bold fs-4">3.40</div>
+                                <small class="text-muted">Draw</small>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-gold fw-bold fs-4">3.50</div>
+                                <small class="text-muted">Away</small>
+                            </div>
+                        </div>
+                        <div class="text-muted small">Man United vs Liverpool</div>
+                    </div>
+                    <!-- Floating stat cards -->
+                    <div class="glass-card position-absolute p-3" style="top: -20px; right: -60px; width: 140px;">
+                        <div class="text-gold fw-bold fs-3">10K+</div>
+                        <small class="text-muted">Active Users</small>
+                    </div>
+                    <div class="glass-card position-absolute p-3" style="bottom: -20px; left: -60px; width: 140px;">
+                        <div class="text-gold fw-bold fs-3">50+</div>
+                        <small class="text-muted">Live Markets</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="features-section">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold display-6">Why Choose <span class="text-gold">BetPro</span></h2>
+            <p class="text-muted fs-5">The ultimate sports betting experience</p>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-4 animate-fade-in animate-fade-in-delay-1">
+                <div class="glass-card p-4 h-100 card-hover-lift">
+                    <div class="feature-icon" style="background: rgba(255, 215, 0, 0.1);">
+                        <i class="fas fa-futbol text-gold"></i>
+                    </div>
+                    <h5 class="fw-bold">Multiple Sports</h5>
+                    <p class="text-muted small">Football, Basketball, Tennis, Rugby, eSports, Virtual Games and more.</p>
+                </div>
+            </div>
+            <div class="col-md-4 animate-fade-in animate-fade-in-delay-2">
+                <div class="glass-card p-4 h-100 card-hover-lift">
+                    <div class="feature-icon" style="background: rgba(13, 110, 253, 0.1);">
+                        <i class="fas fa-bolt text-primary"></i>
+                    </div>
+                    <h5 class="fw-bold">Live Betting</h5>
+                    <p class="text-muted small">Bet in real-time with dynamic odds updates as the action unfolds.</p>
+                </div>
+            </div>
+            <div class="col-md-4 animate-fade-in animate-fade-in-delay-3">
+                <div class="glass-card p-4 h-100 card-hover-lift">
+                    <div class="feature-icon" style="background: rgba(25, 135, 84, 0.1);">
+                        <i class="fas fa-gift text-success"></i>
+                    </div>
+                    <h5 class="fw-bold">Welcome Bonus</h5>
+                    <p class="text-muted small">Get KES 1,000 bonus on your first deposit of KES 500 or more.</p>
+                </div>
+            </div>
+            <div class="col-md-4 animate-fade-in animate-fade-in-delay-4">
+                <div class="glass-card p-4 h-100 card-hover-lift">
+                    <div class="feature-icon" style="background: rgba(255, 193, 7, 0.1);">
+                        <i class="fas fa-coins text-warning"></i>
+                    </div>
+                    <h5 class="fw-bold">Instant Withdrawals</h5>
+                    <p class="text-muted small">Fast and secure withdrawals processed within minutes.</p>
+                </div>
+            </div>
+            <div class="col-md-4 animate-fade-in animate-fade-in-delay-5">
+                <div class="glass-card p-4 h-100 card-hover-lift">
+                    <div class="feature-icon" style="background: rgba(220, 53, 69, 0.1);">
+                        <i class="fas fa-shield-alt text-danger"></i>
+                    </div>
+                    <h5 class="fw-bold">Secure Platform</h5>
+                    <p class="text-muted small">256-bit encryption, secure authentication, and fraud protection.</p>
+                </div>
+            </div>
+            <div class="col-md-4 animate-fade-in animate-fade-in-delay-5">
+                <div class="glass-card p-4 h-100 card-hover-lift">
+                    <div class="feature-icon" style="background: rgba(13, 202, 240, 0.1);">
+                        <i class="fas fa-chart-line text-info"></i>
+                    </div>
+                    <h5 class="fw-bold">Detailed Analytics</h5>
+                    <p class="text-muted small">Track your bets, view statistics, and analyze your performance.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Sports Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold display-6">Our <span class="text-gold">Sports</span></h2>
+            <p class="text-muted fs-5">Bet on a wide range of sports</p>
+        </div>
+        <div class="row g-3 justify-content-center">
+            {% for sport in sports %}
+            <div class="col-4 col-md-2">
+                <div class="glass-card text-center p-4 card-hover-lift">
+                    <div class="fs-1 mb-2"><i class="fas {{ sport.icon }} text-gold"></i></div>
+                    <div class="fw-bold small">{{ sport.name }}</div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="glass-card p-5 text-center">
+            <h2 class="fw-bold mb-3">Ready to Start Betting?</h2>
+            <p class="text-muted fs-5 mb-4">Join BetPro today and claim your KES 1,000 welcome bonus!</p>
+            <a href="{{ url_for('auth.register') }}" class="btn btn-gold btn-lg px-5 fw-bold">
+                <i class="fas fa-user-plus me-2"></i> Create Free Account
+            </a>
+        </div>
+    </div>
+</section>
+
+{% endblock %}

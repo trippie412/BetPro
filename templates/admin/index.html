@@ -1,0 +1,109 @@
+{% extends "layouts/base.html" %}
+{% block title %}Admin Dashboard - BetPro{% endblock %}
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="fw-bold mb-1"><i class="fas fa-shield-alt text-gold me-2"></i>Admin Dashboard</h4>
+        <p class="text-muted small mb-0">System overview and management</p>
+    </div>
+    <div>
+        <a href="{{ url_for('admin.logs') }}" class="btn btn-outline-secondary btn-sm"><i class="fas fa-history me-1"></i> Audit Logs</a>
+        <a href="{{ url_for('admin.settings') }}" class="btn btn-outline-secondary btn-sm"><i class="fas fa-cog me-1"></i> Settings</a>
+    </div>
+</div>
+
+<!-- Stats -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3"><div class="glass-card p-3 text-center"><div class="text-muted small">Total Users</div><div class="fw-bold fs-4">{{ total_users }}</div></div></div>
+    <div class="col-md-3"><div class="glass-card p-3 text-center"><div class="text-muted small">Active Users</div><div class="fw-bold fs-4">{{ active_users }}</div></div></div>
+    <div class="col-md-3"><div class="glass-card p-3 text-center"><div class="text-muted small">Total Deposits</div><div class="fw-bold fs-4 text-success">KSh {{ "%0.0f"|format(total_deposits) }}</div></div></div>
+    <div class="col-md-3"><div class="glass-card p-3 text-center"><div class="text-muted small">Total Withdrawals</div><div class="fw-bold fs-4 text-danger">KSh {{ "%0.0f"|format(total_withdrawals) }}</div></div></div>
+    <div class="col-md-3"><div class="glass-card p-3 text-center"><div class="text-muted small">Total Bets</div><div class="fw-bold fs-4">{{ total_bets }}</div></div></div>
+    <div class="col-md-3"><div class="glass-card p-3 text-center"><div class="text-muted small">Pending Bets</div><div class="fw-bold fs-4 text-warning">{{ pending_bets }}</div></div></div>
+    <div class="col-md-3"><div class="glass-card p-3 text-center"><div class="text-muted small">Pending Deposits</div><div class="fw-bold fs-4 text-warning">{{ pending_deposits }}</div></div></div>
+    <div class="col-md-3"><div class="glass-card p-3 text-center"><div class="text-muted small">Pending Withdrawals</div><div class="fw-bold fs-4 text-warning">{{ pending_withdrawals }}</div></div></div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="glass-card p-4">
+            <h5 class="fw-bold mb-3"><i class="fas fa-chart-bar text-gold me-2"></i>Revenue Analytics</h5>
+            <div class="chart-container"><canvas id="adminRevenueChart"></canvas></div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="glass-card p-4">
+            <h5 class="fw-bold mb-3"><i class="fas fa-users text-gold me-2"></i>Recent Registrations</h5>
+            {% for u in recent_users %}
+            <div class="d-flex align-items-center py-2 border-bottom border-secondary border-opacity-10">
+                <img src="{{ url_for('static', filename='uploads/profile_pictures/' + (u.profile_picture or 'default.png')) }}" class="rounded-circle me-2" width="32" height="32" />
+                <div>
+                    <div class="fw-bold small">{{ u.username }}</div>
+                    <div class="text-muted" style="font-size: 11px;">{{ u.created_at.strftime('%d %b %Y %H:%M') }}</div>
+                </div>
+            </div>
+            {% endfor %}
+            <a href="{{ url_for('admin.users') }}" class="btn btn-outline-secondary btn-sm w-100 mt-2">View All Users</a>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mt-2">
+    <div class="col-md-4">
+        <div class="glass-card p-4 text-center">
+            <i class="fas fa-users fa-2x text-primary mb-2"></i>
+            <h6>Users</h6>
+            <a href="{{ url_for('admin.users') }}" class="btn btn-sm btn-outline-primary">Manage Users</a>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="glass-card p-4 text-center">
+            <i class="fas fa-futbol fa-2x text-success mb-2"></i>
+            <h6>Matches</h6>
+            <a href="{{ url_for('admin.matches') }}" class="btn btn-sm btn-outline-success">Manage Matches</a>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="glass-card p-4 text-center">
+            <i class="fas fa-coins fa-2x text-warning mb-2"></i>
+            <h6>Deposits & Withdrawals</h6>
+            <a href="{{ url_for('admin.deposits') }}" class="btn btn-sm btn-outline-warning">Review Requests</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+fetch('/admin/analytics').then(r=>r.json()).then(data=>{
+    if(data.daily_deposits && data.daily_deposits.length){
+        var labels = data.daily_deposits.map(d=>d.date.slice(5));
+        var deposits = data.daily_deposits.map(d=>d.total);
+        new Chart(document.getElementById('adminRevenueChart').getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Deposits (KES)',
+                    data: deposits,
+                    backgroundColor: 'rgba(255,215,0,0.3)',
+                    borderColor: '#ffd700',
+                    borderWidth: 1,
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { labels: { color: '#9aa0a6' } } },
+                scales: {
+                    x: { ticks: { color: '#9aa0a6' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+                    y: { ticks: { color: '#9aa0a6' }, grid: { color: 'rgba(255,255,255,0.05)' } }
+                }
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,105 @@
+<!-- Sidebar Navigation -->
+<div class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+        <a href="{{ url_for('dashboard.index') }}" class="d-flex align-items-center text-decoration-none">
+            <div class="brand-icon">
+                <i class="fas fa-trophy text-warning"></i>
+            </div>
+            <div class="brand-text ms-2">
+                <span class="brand-name">BetPro</span>
+                <small class="brand-tagline text-muted">Premium Betting</small>
+            </div>
+        </a>
+    </div>
+
+    <div class="sidebar-user-info">
+        <div class="d-flex align-items-center p-3">
+            <img src="{{ url_for('static', filename='uploads/profile_pictures/' + (current_user.profile_picture if current_user.profile_picture else 'default.png')) }}"
+                 alt="Profile" class="rounded-circle sidebar-avatar" width="40" height="40" />
+            <div class="ms-2">
+                <div class="fw-bold text-white small">{{ current_user.username }}</div>
+                <div class="text-muted" style="font-size: 11px;">
+                    <i class="fas fa-wallet me-1"></i> {{ "KSh %0.2f"|format(current_user.get_wallet_balance()) }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <ul class="sidebar-nav">
+        <li class="nav-item">
+            <a href="{{ url_for('dashboard.index') }}" class="nav-link {% if request.endpoint and 'dashboard' in request.endpoint %}active{% endif %}">
+                <i class="fas fa-th-large"></i> <span>Dashboard</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="{{ url_for('betting.index') }}" class="nav-link {% if request.endpoint and 'betting' in request.endpoint and 'history' not in request.endpoint %}active{% endif %}">
+                <i class="fas fa-futbol"></i> <span>Place Bet</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="{{ url_for('matches.index') }}" class="nav-link {% if request.endpoint and 'matches' in request.endpoint %}active{% endif %}">
+                <i class="fas fa-calendar-alt"></i> <span>Matches</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="{{ url_for('sports.index') }}" class="nav-link {% if request.endpoint and 'sports' in request.endpoint %}active{% endif %}">
+                <i class="fas fa-list"></i> <span>Sports</span>
+            </a>
+        </li>
+        <li class="nav-divider"><span>FINANCE</span></li>
+        <li class="nav-item">
+            <a href="{{ url_for('wallet.index') }}" class="nav-link {% if request.endpoint and 'wallet' in request.endpoint and 'deposit' not in request.endpoint and 'withdraw' not in request.endpoint %}active{% endif %}">
+                <i class="fas fa-wallet"></i> <span>My Wallet</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="{{ url_for('wallet.deposit') }}" class="nav-link {% if request.endpoint and 'wallet.deposit' in request.endpoint %}active{% endif %}">
+                <i class="fas fa-arrow-down text-success"></i> <span>Deposit</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="{{ url_for('wallet.withdraw') }}" class="nav-link {% if request.endpoint and 'wallet.withdraw' in request.endpoint %}active{% endif %}">
+                <i class="fas fa-arrow-up text-danger"></i> <span>Withdraw</span>
+            </a>
+        </li>
+        <li class="nav-divider"><span>HISTORY</span></li>
+        <li class="nav-item">
+            <a href="{{ url_for('betting.history') }}" class="nav-link {% if request.endpoint and 'betting.history' in request.endpoint %}active{% endif %}">
+                <i class="fas fa-history"></i> <span>Bet History</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="{{ url_for('wallet.transactions') }}" class="nav-link {% if request.endpoint and 'wallet.transactions' in request.endpoint %}active{% endif %}">
+                <i class="fas fa-exchange-alt"></i> <span>Transactions</span>
+            </a>
+        </li>
+        <li class="nav-divider"><span>ACCOUNT</span></li>
+        <li class="nav-item">
+            <a href="{{ url_for('profile.index') }}" class="nav-link {% if request.endpoint and 'profile' in request.endpoint %}active{% endif %}">
+                <i class="fas fa-user-circle"></i> <span>My Profile</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="{{ url_for('dashboard.notifications') }}" class="nav-link position-relative">
+                <i class="fas fa-bell"></i> <span>Notifications</span>
+                {% if unread_notifications > 0 %}
+                    <span class="badge bg-warning text-dark position-absolute top-50 end-0 translate-middle-y me-3">{{ unread_notifications }}</span>
+                {% endif %}
+            </a>
+        </li>
+        {% if current_user.is_admin or current_user.has_role('admin') %}
+            <li class="nav-divider"><span>ADMIN</span></li>
+            <li class="nav-item">
+                <a href="{{ url_for('admin.index') }}" class="nav-link {% if request.endpoint and 'admin' in request.endpoint %}active{% endif %}">
+                    <i class="fas fa-shield-alt"></i> <span>Admin Panel</span>
+                </a>
+            </li>
+        {% endif %}
+    </ul>
+
+    <div class="sidebar-footer">
+        <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-danger btn-sm w-100">
+            <i class="fas fa-sign-out-alt me-1"></i> Logout
+        </a>
+    </div>
+</div>

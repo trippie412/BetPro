@@ -1,0 +1,40 @@
+{% extends "layouts/base.html" %}
+{% block title %}Deposit - BetPro{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="glass-card p-4">
+            <h4 class="fw-bold mb-1"><i class="fas fa-arrow-down text-success me-2"></i>Deposit Funds</h4>
+            <p class="text-muted small mb-4">Minimum deposit: KSh 50 | Get KES 1,000 bonus on first deposit of KES 500+</p>
+            <form method="POST" action="">
+                {{ form.hidden_tag() }}
+                <div class="mb-3">
+                    <label class="form-label text-muted small">Amount (KES)</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-dark text-light border-secondary">KSh</span>
+                        {{ form.amount(class="form-control form-control-dark", placeholder="Enter amount") }}
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-muted small">Payment Method</label>
+                    {{ form.payment_method(class="form-control form-control-dark") }}
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-muted small">Phone Number</label>
+                    {{ form.phone_number(class="form-control form-control-dark", placeholder="e.g. 0712345678") }}
+                </div>
+                {{ form.submit(class="btn btn-success w-100 py-2 fw-bold") }}
+            </form>
+        </div>
+        <div class="glass-card p-4 mt-3">
+            <h6 class="fw-bold mb-2"><i class="fas fa-info-circle text-gold me-1"></i>Deposit Info</h6>
+            <ul class="small text-muted mb-0">
+                <li>Deposits are processed instantly</li>
+                <li>Minimum deposit: KSh 50</li>
+                <li>First deposit of KES 500+ earns KES 1,000 welcome bonus</li>
+                <li>Use your registered phone number for M-Pesa payments</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}
