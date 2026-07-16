@@ -1,13 +1,16 @@
-"""Run script for development server."""
 import os
 from app import create_app
 
-config_name = os.environ.get('FLASK_ENV', 'development')
+if os.environ.get("VERCEL"):
+    config_name = "production"
+else:
+    config_name = os.environ.get("FLASK_ENV", "development")
+
 app = create_app(config_name)
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     app.run(
-        host=os.environ.get('HOST', '0.0.0.0'),
-        port=int(os.environ.get('PORT', 5000)),
-        debug=(config_name == 'development')
+        host=os.environ.get("HOST", "0.0.0.0"),
+        port=int(os.environ.get("PORT", 5000)),
+        debug=(config_name == "development")
     )
