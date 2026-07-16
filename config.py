@@ -99,10 +99,10 @@ class TestingConfig(Config):
 class ProductionConfig(Config):
     """Production environment configuration."""
     DEBUG = False
-    SQLALCHEMY_DATABASE_URI = os.environ.get(
-        'DATABASE_URL',
-        'postgresql://betpro_user:strongpassword@localhost:5432/betpro_db'
-    )
+    SQLALCHEMY_DATABASE_URI = (
+    os.environ.get("DATABASE_URL")
+    or os.environ.get("POSTGRES_URL")
+ )
     SESSION_COOKIE_SECURE = True
 
     @classmethod
