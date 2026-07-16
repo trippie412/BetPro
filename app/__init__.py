@@ -26,7 +26,8 @@ def create_app(config_name=None):
         pass
 
     # Ensure upload directories exist
-    _ensure_directories(app)
+    if os.environ.get("VERCEL") != "1":
+        _ensure_directories(app)
 
     # Initialize extensions
     db.init_app(app)
