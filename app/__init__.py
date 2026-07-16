@@ -36,7 +36,10 @@ def create_app(config_name=None):
     csrf.init_app(app)
     mail.init_app(app)
     limiter.init_app(app)
-    sess.init_app(app)
+
+    # Only initialize Flask-Session when using filesystem sessions
+    if app.config.get("SESSION_TYPE"):
+        sess.init_app(app)
     
      # Register blueprints
     _register_blueprints(app)
