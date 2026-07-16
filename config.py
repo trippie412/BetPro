@@ -95,14 +95,15 @@ class TestingConfig(Config):
     SQLALCHEMY_DATABASE_URI = os.environ.get('TEST_DATABASE_URL', 'sqlite:///:memory:')
     WTF_CSRF_ENABLED = False
 
-
 class ProductionConfig(Config):
     """Production environment configuration."""
     DEBUG = False
+
     SQLALCHEMY_DATABASE_URI = (
-    os.environ.get("DATABASE_URL")
-    or os.environ.get("POSTGRES_URL")
- )
+        os.environ.get("DATABASE_URL")
+        or os.environ.get("POSTGRES_URL")
+    )
+
     SESSION_COOKIE_SECURE = True
 
     @classmethod
@@ -110,26 +111,29 @@ class ProductionConfig(Config):
         Config.init_app(app)
 
         import logging
-
         app.logger.setLevel(logging.INFO)
 
-        # Don't write log files on Vercel
         if not os.environ.get("VERCEL"):
             from logging.handlers import RotatingFileHandler
+
+            os.makedirs("logs", exist_ok=True)
 
             file_handler = RotatingFileHandler(
                 "logs/betpro.log",
                 maxBytes=10 * 1024 * 1024,
                 backupCount=10,
             )
-            file_handler.setFormatter(logging.Formatter(
-                "%(asctime)s %(levelname)s: %(message)s"
-            ))
+            file_handler.setFormatter(
+                logging.Formatter(
+                    "%(asctime)s %(levelname)s: %(message)s "
+                    "[in %(pathname)s:%(lineno)d]"
+                )
+            )
+            file_handler.setLevel(logging.INFO)
             app.logger.addHandler(file_handler)
 
         app.logger.info("BetPro startup")
         
-
 config = {
     'development': DevelopmentConfig,
     'testing': TestingConfig,
