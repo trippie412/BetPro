@@ -26,7 +26,7 @@ def create_app(config_name=None):
         pass
 
     # Ensure upload directories exist
-    if os.environ.get("VERCEL") != "1":
+    if not os.environ.get("VERCEL"):
         _ensure_directories(app)
 
     # Initialize extensions
@@ -54,12 +54,13 @@ def create_app(config_name=None):
     # Load user loader
     _load_user_loader()
 
-    # Create database tables
+    # Initialize database only when not running on Vercel
     with app.app_context():
         from app import models  # noqa
-        db.create_all()
-        _seed_initial_data(app)
-        
+
+        if not os.environ.get("VERCEL"):
+           db.create_all()
+           _seed_initial_data(app)
 
     return app
 
