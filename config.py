@@ -27,14 +27,14 @@ class Config:
     REMEMBER_COOKIE_DURATION = timedelta(days=30)
     
     # Flask-Session configuration
-    SESSION_PERMANENT = False
-    SESSION_USE_SIGNER = True
-
     if os.environ.get("VERCEL"):
-        SESSION_TYPE = None
+        SESSION_TYPE = "null"
     else:
         SESSION_TYPE = "filesystem"
         SESSION_FILE_DIR = os.path.join(basedir, "flask_session")
+
+        SESSION_PERMANENT = False
+        SESSION_USE_SIGNER = True
    
 
     # Uploads
