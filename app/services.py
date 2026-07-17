@@ -557,91 +557,91 @@ class LiveDataService:
         return response.json()["response"]
 
     @staticmethod
-def sync_matches_to_db():
-    fixtures = LiveDataService.fetch_upcoming_matches()
+    def sync_matches_to_db():
+        fixtures = LiveDataService.fetch_upcoming_matches()
 
-    imported = 0
+        imported = 0
 
-    for item in fixtures:
+        for item in fixtures:
 
-        sport_name = "Football"
+            sport_name = "Football"
 
-        league_name = item["league"]["name"]
+            league_name = item["league"]["name"]
 
-        home_team = item["teams"]["home"]["name"]
-        away_team = item["teams"]["away"]["name"]
+            home_team = item["teams"]["home"]["name"]
+            away_team = item["teams"]["away"]["name"]
 
-        match_date = datetime.fromisoformat(
-            item["fixture"]["date"].replace("Z", "+00:00")
-        )
-
-        is_live = item["fixture"]["status"]["short"] == "LIVE"
-
-        # ------------------------
-        # Sport
-        # ------------------------
-
-        sport = Sport.query.filter_by(name=sport_name).first()
-
-        if not sport:
-            sport = Sport(
-                name=sport_name,
-                slug="football"
+            match_date = datetime.fromisoformat(
+                item["fixture"]["date"].replace("Z", "+00:00")
             )
-            db.session.add(sport)
-            db.session.flush()
 
-        # ------------------------
-        # League
-        # ------------------------
+            is_live = item["fixture"]["status"]["short"] == "LIVE"
 
-        league = League.query.filter_by(
-            name=league_name,
-            sport_id=sport.id
-        ).first()
+            # ------------------------
+            # Sport
+            # ------------------------
 
-        if not league:
-            league = League(
+            sport = Sport.query.filter_by(name=sport_name).first()
+
+            if not sport:
+                sport = Sport(
+                    name=sport_name,
+                    slug="football"
+                )
+                db.session.add(sport)
+                db.session.flush()
+
+            # ------------------------
+            # League
+            # ------------------------
+
+            league = League.query.filter_by(
                 name=league_name,
-                slug=league_name.lower().replace(" ", "-"),
                 sport_id=sport.id
+            ).first()
+
+            if not league:
+                league = League(
+                    name=league_name,
+                    slug=league_name.lower().replace(" ", "-"),
+                    sport_id=sport.id
+                )
+
+                db.session.add(league)
+                db.session.flush()
+
+            # ------------------------
+            # Existing Match?
+            # ------------------------
+
+            existing = Match.query.filter_by(
+                home_team=home_team,
+                away_team=away_team,
+                match_date=match_date
+            ).first()
+
+            if existing:
+                continue
+
+            match = Match(
+                sport_id=sport.id,
+                league_id=league.id,
+                home_team=home_team,
+                away_team=away_team,
+                match_date=match_date,
+                status=MATCH_SCHEDULED,
+                is_live=is_live,
+                is_featured=False
             )
 
-            db.session.add(league)
+            db.session.add(match)
             db.session.flush()
 
-        # ------------------------
-        # Existing Match?
-        # ------------------------
+            imported += 1
 
-        existing = Match.query.filter_by(
-            home_team=home_team,
-            away_team=away_team,
-            match_date=match_date
-        ).first()
+        db.session.commit()
 
-        if existing:
-            continue
-
-        match = Match(
-            sport_id=sport.id,
-            league_id=league.id,
-            home_team=home_team,
-            away_team=away_team,
-            match_date=match_date,
-            status=MATCH_SCHEDULED,
-            is_live=is_live,
-            is_featured=False
-        )
-
-        db.session.add(match)
-        db.session.flush()
-
-        imported += 1
-
-    db.session.commit()
-
-    return imported
+        return imported
 
 
 # =============================================================================
