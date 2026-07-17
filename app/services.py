@@ -553,9 +553,20 @@ class LiveDataService:
             timeout=30
         )
 
+        print("=" * 60)
+        print("STATUS:", response.status_code)
+        print(response.text[:2000])
+        print("=" * 60)
+
         response.raise_for_status()
 
-        return response.json()["response"]
+        data = response.json()
+
+        print("Results:", data.get("results"))
+        print("Errors:", data.get("errors"))
+        print("Response length:", len(data.get("response", [])))
+
+        return data.get("response", [])
 
     @staticmethod
     def sync_matches_to_db():
@@ -564,7 +575,7 @@ class LiveDataService:
         print("=" * 60)
         print(f"Fetched {len(fixtures)} fixtures")
         if fixtures:
-             print(fixtures[0])
+            print(fixtures[0])
         print("=" * 60)
 
         imported = 0
@@ -650,29 +661,29 @@ class LiveDataService:
             print(f"Match {match.id}: existing_odds = {existing_odds}")
 
             if existing_odds is None:
-                 print(f"Creating odds for match {match.id}")
+                print(f"Creating odds for match {match.id}")
 
-                 odds = Odds(
-                     match_id=match.id,
-                     home_win=round(random.uniform(1.50, 3.50), 2),
-                     draw=round(random.uniform(2.80, 4.20), 2),
-                     away_win=round(random.uniform(1.50, 3.50), 2),
-                     over_under_line=2.5,
-                     over=1.90,
-                     under=1.90,
-                     btts_yes=1.85,
-                     btts_no=1.95,
-                     double_chance_1x=1.30,
-                     double_chance_12=1.25,
-                     double_chance_2x=1.45,
-                 )
+                odds = Odds(
+                    match_id=match.id,
+                    home_win=round(random.uniform(1.50, 3.50), 2),
+                    draw=round(random.uniform(2.80, 4.20), 2),
+                    away_win=round(random.uniform(1.50, 3.50), 2),
+                    over_under_line=2.5,
+                    over=1.90,
+                    under=1.90,
+                    btts_yes=1.85,
+                    btts_no=1.95,
+                    double_chance_1x=1.30,
+                    double_chance_12=1.25,
+                    double_chance_2x=1.45,
+                )
 
-                 db.session.add(odds)
-                 print(f"Added odds for match {match.id}")
-                 
-                 print("About to commit...")
-                 print(db.session.new)
-      
+                db.session.add(odds)
+                print(f"Added odds for match {match.id}")
+
+                print("About to commit...")
+                print(db.session.new)
+
         db.session.commit()
 
         return imported
