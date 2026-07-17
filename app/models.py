@@ -206,6 +206,12 @@ class Deposit(db.Model):
     phone_number = db.Column(db.String(20), nullable=True)
     transaction_code = db.Column(db.String(100), nullable=True)
     receipt_number = db.Column(db.String(100), nullable=True, unique=True)
+
+    # M-Pesa callback tracking
+    checkout_request_id = db.Column(db.String(100), unique=True, nullable=True)
+    merchant_request_id = db.Column(db.String(100), nullable=True)
+    callback_data = db.Column(db.Text, nullable=True)
+
     reference = db.Column(db.String(64), unique=True, default=generate_uuid)
     notes = db.Column(db.Text, nullable=True)
     status = db.Column(db.String(20), default=REQUEST_PENDING)

@@ -73,8 +73,8 @@ class Config:
     # Callback URL - must be HTTPS and publicly reachable
     # For local dev use ngrok: ngrok http 5000
     MPESA_CALLBACK_URL = os.environ.get(
-        'MPESA_CALLBACK_URL',
-        'https://your-domain.com/api/mpesa/callback'
+       "MPESA_CALLBACK_URL",
+       "https://your-domain.com/payments/callback/mpesa"
     )
 
     @staticmethod

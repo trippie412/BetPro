@@ -1,4 +1,5 @@
 """Payment gateway routes."""
+import json
 from flask import render_template, redirect, url_for, flash, request, jsonify, current_app
 from flask_login import login_required, current_user
 from app import db
@@ -7,33 +8,48 @@ from app.payments import payments_bp
 from app.payments.forms import PaymentConfigForm
 from app.decorators import admin_required
 from app.services import PaymentService
+from app.constants import REQUEST_APPROVED, REQUEST_REJECTED
 
 
-@payments_bp.route('/callback/<payment_method>', methods=['POST'])
-def payment_callback(payment_method):
-    """Handle payment gateway callback/webhook."""
-    data = request.get_json() or request.form.to_dict()
-    # In production, verify the callback signature
-    transaction_id = data.get('transaction_id')
-    status = data.get('status')
-    reference = data.get('reference')
+from app.services import MpesaService, WalletService
 
-    if not transaction_id:
-        return jsonify({'error': 'Missing transaction_id'}), 400
+@payments_bp.route("/callback/mpesa", methods=["POST"])
+def payment_callback():
+    data = request.get_json(force=True)
 
-    # Find the deposit by reference
-    deposit = Deposit.query.filter_by(reference=reference).first()
-    if deposit:
-        if status == 'completed':
-            deposit.status = 'approved'
-            from app.services import WalletService
-            WalletService.add_funds(deposit.user, deposit.amount, f'Payment callback: {transaction_id}')
+    result = MpesaService.process_callback(data)
+
+    checkout_id = result["CheckoutRequestID"]
+
+    deposit = Deposit.query.filter_by(
+        checkout_request_id=checkout_id
+    ).first()
+
+    if not deposit:
+        return jsonify({"ResultCode": 0})
+
+    if result["success"]:
+
+        # Prevent duplicate crediting
+        if deposit.status != REQUEST_APPROVED:
+
+            deposit.status = REQUEST_APPROVED
+            deposit.receipt_number = result["receipt"]
+            deposit.transaction_code = result["receipt"]
+
+            WalletService.add_funds(
+                deposit.user,
+                deposit.amount,
+                "M-Pesa Deposit"
+            )
+
             db.session.commit()
-        elif status == 'failed':
-            deposit.status = 'rejected'
-            db.session.commit()
 
-    return jsonify({'status': 'received'})
+    else:
+        deposit.status = REQUEST_REJECTED
+        db.session.commit()
+
+    return jsonify({"ResultCode": 0})
 
 
 @payments_bp.route('/status/<reference>')
