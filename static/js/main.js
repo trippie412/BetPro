@@ -93,7 +93,7 @@ function initBetSlip() {
     const closeBtn = document.getElementById('betslipClose');
     if (closeBtn) {
         closeBtn.addEventListener('click', function() {
-            document.getElementById('betslipPanel').classList.remove('open');
+            closeBetSlip();
         });
     }
 
@@ -107,19 +107,19 @@ function initBetSlip() {
 }
 
 function toggleBetSlip() {
-    const panel = document.getElementById('betslipPanel');
+    const panel = document.getElementById('betslipPanelInline');
     if (panel) {
         panel.classList.toggle('open');
     }
 }
 
 function openBetSlip() {
-    const panel = document.getElementById('betslipPanel');
+    const panel = document.getElementById('betslipPanelInline');
     if (panel) panel.classList.add('open');
 }
 
 function closeBetSlip() {
-    const panel = document.getElementById('betslipPanel');
+    const panel = document.getElementById('betslipPanelInline');
     if (panel) panel.classList.remove('open');
 }
 
@@ -194,6 +194,7 @@ function updateOddsButtonState(matchId, selectionType, selected) {
 function updateBetSlipUI() {
     const container = document.getElementById('betslipSelections');
     const countEl = document.getElementById('betslipCount');
+    const countEl2 = document.getElementById('betslipCount2');
     const totalOddsEl = document.getElementById('betslipTotalOdds');
     const potentialEl = document.getElementById('betslipPotential');
     const stakeInput = document.getElementById('betslipStake');
@@ -205,6 +206,7 @@ function updateBetSlipUI() {
 
     // Update count
     if (countEl) countEl.textContent = betSlipSelections.length;
+    if (countEl2) countEl2.textContent = betSlipSelections.length;
     if (floatingBadge) floatingBadge.textContent = betSlipSelections.length;
 
     // Toggle empty state
@@ -308,23 +310,29 @@ function placeBet() {
     }
 
     const minStake = 10;
+
     if (stake < minStake) {
         showToast('warning', `Minimum stake is KES ${minStake}.`);
         return;
     }
 
     const data = {
-        selections: betSlipSelections.map(function(s) {
-            return { match_id: s.match_id, selection_type: s.selection_type };
+        selections: betSlipSelections.map(function(selection) {
+            return {
+                match_id: selection.match_id,
+                selection_type: selection.selection_type
+            };
         }),
         stake: stake,
         use_bonus: useBonus
     };
 
     const btn = document.getElementById('betslipPlaceBtn');
+
     if (btn) {
         btn.disabled = true;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Placing...';
+        btn.innerHTML =
+            '<i class="fas fa-spinner fa-spin me-1"></i> Placing Bet...';
     }
 
     fetch('/betting/place-bet', {
@@ -335,26 +343,64 @@ function placeBet() {
         },
         body: JSON.stringify(data)
     })
-    .then(function(response) { return response.json(); })
+    .then(function(response) {
+
+        if (!response.ok) {
+            return response.json().then(function(err) {
+                throw err;
+            });
+        }
+
+        return response.json();
+    })
     .then(function(result) {
-        if (result.success) {
-            showToast('success', '✅ ' + result.message);
+
+        if (!result.success) {
+            throw result;
+        }
+
+        // Success message
+        showToast(
+            'success',
+            '✅ Bet placed successfully! Ref: ' + result.bet_reference
+        );
+
+        // Disable placing another bet immediately
+        if (btn) {
+            btn.disabled = true;
+        }
+
+        // Wait a second before clearing
+        setTimeout(function () {
+
             clearBetSlip();
             closeBetSlip();
-            // Update wallet balance display
+
+            // Refresh wallet balance
             updateWalletDisplay();
-        } else {
-            showToast('danger', '❌ ' + (result.error || 'Failed to place bet.'));
-        }
+
+        }, 1000);
+
     })
-    .catch(function(err) {
-        showToast('danger', 'Network error. Please try again.');
+    .catch(function(error) {
+
+        console.error(error);
+
+        showToast(
+            'danger',
+            '❌ ' + (error.error || 'Failed to place bet. Please try again.')
+        );
+
+        // Keep the bet slip intact so user can retry
     })
     .finally(function() {
+
         if (btn) {
             btn.disabled = false;
-            btn.innerHTML = '<i class="fas fa-check me-1"></i> Place Bet';
+            btn.innerHTML =
+                '<i class="fas fa-check me-1"></i> Place Bet';
         }
+
     });
 }
 
