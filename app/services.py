@@ -640,23 +640,32 @@ class LiveDataService:
 
             # Create odds if they don't already exist
             existing_odds = Odds.query.filter_by(match_id=match.id).first()
-            
+
+            print(f"Match {match.id}: existing_odds = {existing_odds}")
+
             if existing_odds is None:
-               odds = Odds(
-                   match_id=match.id,
-                   home_win=round(random.uniform(1.50, 3.50), 2),
-                   draw=round(random.uniform(2.80, 4.20), 2),
-                   away_win=round(random.uniform(1.50, 3.50), 2),
-                   over_under_line=2.5,
-                   over=1.90,
-                   under=1.90,
-                   btts_yes=1.85,
-                   btts_no=1.95,
-                   double_chance_1x=1.30,
-                   double_chance_12=1.25,
-                   double_chance_2x=1.45,
-               )
-               db.session.add(odds)
+                 print(f"Creating odds for match {match.id}")
+
+                 odds = Odds(
+                     match_id=match.id,
+                     home_win=round(random.uniform(1.50, 3.50), 2),
+                     draw=round(random.uniform(2.80, 4.20), 2),
+                     away_win=round(random.uniform(1.50, 3.50), 2),
+                     over_under_line=2.5,
+                     over=1.90,
+                     under=1.90,
+                     btts_yes=1.85,
+                     btts_no=1.95,
+                     double_chance_1x=1.30,
+                     double_chance_12=1.25,
+                     double_chance_2x=1.45,
+                 )
+
+                 db.session.add(odds)
+                 print(f"Added odds for match {match.id}")
+                 
+                 print("About to commit...")
+                 print(db.session.new)
       
         db.session.commit()
 
