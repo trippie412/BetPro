@@ -1,0 +1,162 @@
+{% extends "admin/layout.html" %}
+
+{% block title %}Wallet Management{% endblock %}
+
+{% block breadcrumb %}
+<i class="fas fa-wallet me-1"></i> Wallet
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h4><i class="fas fa-wallet me-2 text-primary"></i>Wallet Management</h4>
+    <a href="{{ url_for('admin.wallet_adjustments') }}" class="btn btn-primary btn-sm">
+        <i class="fas fa-plus me-1"></i>Manual Adjustment
+    </a>
+</div>
+
+<!-- Pending Requests -->
+<div class="row g-3 mb-4">
+    <div class="col-lg-6">
+        <div class="table-container">
+            <h5 class="text-warning"><i class="fas fa-clock me-2"></i>Pending Deposits ({{ pending_deposits|length }})</h5>
+            <div class="table-responsive">
+                <table class="table table-hover table-sm">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Amount</th>
+                            <th>Method</th>
+                            <th>Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for dep in pending_deposits %}
+                        <tr>
+                            <td><a href="{{ url_for('admin.user_detail', user_id=dep.user_id) }}">{{ dep.user.username }}</a></td>
+                            <td><strong>{{ currency_symbol }} {{ dep.amount|int }}</strong></td>
+                            <td><small>{{ dep.payment_method or '-' }}</small></td>
+                            <td><small>{{ dep.created_at.strftime('%d %b %H:%M') }}</small></td>
+                            <td>
+                                <form method="POST" action="{{ url_for('admin.approve_deposit', deposit_id=dep.id) }}" class="d-inline">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button class="btn btn-sm btn-success" title="Approve"><i class="fas fa-check"></i></button>
+                                </form>
+                                <form method="POST" action="{{ url_for('admin.reject_deposit', deposit_id=dep.id) }}" class="d-inline">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button class="btn btn-sm btn-danger" title="Reject"><i class="fas fa-times"></i></button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="5" class="text-center text-muted py-3">No pending deposits</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="table-container">
+            <h5 class="text-danger"><i class="fas fa-clock me-2"></i>Pending Withdrawals ({{ pending_withdrawals|length }})</h5>
+            <div class="table-responsive">
+                <table class="table table-hover table-sm">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Amount</th>
+                            <th>Method</th>
+                            <th>Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for wd in pending_withdrawals %}
+                        <tr>
+                            <td><a href="{{ url_for('admin.user_detail', user_id=wd.user_id) }}">{{ wd.user.username }}</a></td>
+                            <td><strong>{{ currency_symbol }} {{ wd.amount|int }}</strong></td>
+                            <td><small>{{ wd.payment_method or '-' }}</small></td>
+                            <td><small>{{ wd.created_at.strftime('%d %b %H:%M') }}</small></td>
+                            <td>
+                                <form method="POST" action="{{ url_for('admin.approve_withdrawal', withdrawal_id=wd.id) }}" class="d-inline">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button class="btn btn-sm btn-success" title="Approve"><i class="fas fa-check"></i></button>
+                                </form>
+                                <form method="POST" action="{{ url_for('admin.reject_withdrawal', withdrawal_id=wd.id) }}" class="d-inline">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button class="btn btn-sm btn-danger" title="Reject"><i class="fas fa-times"></i></button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="5" class="text-center text-muted py-3">No pending withdrawals</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Approved -->
+<div class="row g-3">
+    <div class="col-lg-6">
+        <div class="table-container">
+            <h5 class="text-success"><i class="fas fa-check-circle me-2"></i>Recently Approved Deposits</h5>
+            <div class="table-responsive">
+                <table class="table table-hover table-sm">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Amount</th>
+                            <th>Approved By</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for dep in recent_approved_deposits %}
+                        <tr>
+                            <td>{{ dep.user.username }}</td>
+                            <td><strong>{{ currency_symbol }} {{ dep.amount|int }}</strong></td>
+                            <td><small>{{ dep.approver.username if dep.approver else '-' }}</small></td>
+                            <td><small>{{ dep.approved_at.strftime('%d %b %H:%M') if dep.approved_at else '-' }}</small></td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="4" class="text-center text-muted py-3">No approved deposits yet</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="table-container">
+            <h5 class="text-success"><i class="fas fa-check-circle me-2"></i>Recently Approved Withdrawals</h5>
+            <div class="table-responsive">
+                <table class="table table-hover table-sm">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Amount</th>
+                            <th>Approved By</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for wd in recent_approved_withdrawals %}
+                        <tr>
+                            <td>{{ wd.user.username }}</td>
+                            <td><strong>{{ currency_symbol }} {{ wd.amount|int }}</strong></td>
+                            <td><small>{{ wd.approver.username if wd.approver else '-' }}</small></td>
+                            <td><small>{{ wd.approved_at.strftime('%d %b %H:%M') if wd.approved_at else '-' }}</small></td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="4" class="text-center text-muted py-3">No approved withdrawals yet</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

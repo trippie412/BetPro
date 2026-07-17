@@ -1,0 +1,203 @@
+{% extends "admin/layout.html" %}
+
+{% block title %}Matches{% endblock %}
+
+{% block breadcrumb %}
+<i class="fas fa-futbol me-1"></i> Matches
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h4><i class="fas fa-futbol me-2 text-primary"></i>Match Management</h4>
+    <a href="{{ url_for('admin.create_match') }}" class="btn btn-primary">
+        <i class="fas fa-plus me-1"></i>Create Match
+    </a>
+</div>
+
+<div class="filter-bar">
+    <form method="GET" class="d-flex gap-2 align-items-center flex-wrap">
+        <select name="sport_id" class="form-select form-select-sm" onchange="this.form.submit()">
+            <option value="">All Sports</option>
+            {% for sport in sports %}
+            <option value="{{ sport.id }}" {{ 'selected' if request.args.get('sport_id', type=int) == sport.id }}>{{ sport.name }}</option>
+            {% endfor %}
+        </select>
+        <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
+            <option value="">All Status</option>
+            <option value="scheduled" {{ 'selected' if request.args.get('status') == 'scheduled' }}>Scheduled</option>
+            <option value="live" {{ 'selected' if request.args.get('status') == 'live' }}>Live</option>
+            <option value="finished" {{ 'selected' if request.args.get('status') == 'finished' }}>Finished</option>
+            <option value="postponed" {{ 'selected' if request.args.get('status') == 'postponed' }}>Postponed</option>
+            <option value="cancelled" {{ 'selected' if request.args.get('status') == 'cancelled' }}>Cancelled</option>
+        </select>
+        <div class="ms-auto">
+            <span class="text-muted small">{{ matches.total }} matches found</span>
+        </div>
+    </form>
+</div>
+
+<div class="table-container">
+    <div class="table-responsive">
+        <table class="table table-hover datatable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Match</th>
+                    <th>Sport / League</th>
+                    <th>Date</th>
+                    <th>Score</th>
+                    <th>Status</th>
+                    <th>Featured</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for match in matches.items %}
+                <tr>
+                    <td><small>#{{ match.id }}</small></td>
+                    <td>
+                        <strong>{{ match.home_team }}</strong> vs <strong>{{ match.away_team }}</strong>
+                    </td>
+                    <td>
+                        <small>{{ match.sport.name }} / {{ match.league.name }}</small>
+                    </td>
+                    <td><small>{{ match.match_date.strftime('%d %b %Y %H:%M') }}</small></td>
+                    <td>
+                        {% if match.home_score is not none %}
+                        <strong>{{ match.home_score }} - {{ match.away_score }}</strong>
+                        {% else %}
+                        <span class="text-muted">-</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if match.status == 'live' %}
+                        <span class="badge bg-danger">LIVE</span>
+                        {% elif match.status == 'scheduled' %}
+                        <span class="badge bg-primary">Scheduled</span>
+                        {% elif match.status == 'finished' %}
+                        <span class="badge bg-secondary">Finished</span>
+                        {% elif match.status == 'postponed' %}
+                        <span class="badge bg-warning text-dark">Postponed</span>
+                        {% elif match.status == 'cancelled' %}
+                        <span class="badge bg-dark">Cancelled</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if match.is_featured %}
+                        <span class="badge bg-warning text-dark"><i class="fas fa-star"></i></span>
+                        {% else %}
+                        <span class="text-muted">-</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="btn-group-action">
+                            <a href="{{ url_for('admin.edit_match', match_id=match.id) }}" class="btn btn-sm btn-outline-primary" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <a href="{{ url_for('admin.edit_odds', match_id=match.id) }}" class="btn btn-sm btn-outline-info" title="Odds">
+                                <i class="fas fa-percentage"></i>
+                            </a>
+                            {% if match.is_live or match.status == 'live' %}
+                            <form method="POST" action="{{ url_for('admin.finish_match', match_id=match.id) }}" class="d-inline">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="button" class="btn btn-sm btn-outline-success" title="Finish Match"
+                                        onclick="showFinishModal({{ match.id }}, '{{ match.home_team }}', '{{ match.away_team }}', '{{ match.home_score or '' }}', '{{ match.away_score or '' }}')">
+                                    <i class="fas fa-flag-checkered"></i>
+                                </button>
+                            </form>
+                            {% endif %}
+                            <form method="POST" action="{{ url_for('admin.toggle_feature_match', match_id=match.id) }}" class="d-inline">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button class="btn btn-sm btn-outline-warning" title="Toggle Featured"
+                                        onclick="return confirm('Toggle featured status?')">
+                                    <i class="fas fa-star{{ '' if match.is_featured else '-o' }}"></i>
+                                </button>
+                            </form>
+                            {% if not match.is_live and match.status != 'finished' %}
+                            <form method="POST" action="{{ url_for('admin.mark_match_live', match_id=match.id) }}" class="d-inline">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button class="btn btn-sm btn-outline-danger" title="Mark Live"
+                                        onclick="return confirm('Mark this match as LIVE?')">
+                                    <i class="fas fa-broadcast-tower"></i>
+                                </button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="8" class="text-center text-muted py-4">
+                        <i class="fas fa-futbol fa-2x mb-2 d-block opacity-25"></i>
+                        No matches found
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Pagination -->
+{% if matches.pages > 1 %}
+<nav>
+    <ul class="pagination justify-content-center">
+        {% for page_num in matches.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+            {% if page_num %}
+            <li class="page-item {{ 'active' if page_num == matches.page }}">
+                <a class="page-link" href="{{ url_for('admin.matches', page=page_num, sport_id=request.args.get('sport_id')) }}">{{ page_num }}</a>
+            </li>
+            {% else %}
+            <li class="page-item disabled"><span class="page-link">...</span></li>
+            {% endif %}
+        {% endfor %}
+    </ul>
+</nav>
+{% endif %}
+
+<!-- Finish Match Modal -->
+<div class="modal fade" id="finishModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" id="finishForm">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-flag-checkered me-2"></i>Finish Match</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Enter the final score for <strong id="finishMatchName"></strong></p>
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <label class="form-label" id="finishHomeLabel">Home</label>
+                            <input type="number" name="home_score" class="form-control" min="0" required id="finishHomeScore">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label" id="finishAwayLabel">Away</label>
+                            <input type="number" name="away_score" class="form-control" min="0" required id="finishAwayScore">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success"><i class="fas fa-check me-1"></i>Finish Match</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function showFinishModal(matchId, homeTeam, awayTeam, homeScore, awayScore) {
+    document.getElementById('finishMatchName').textContent = homeTeam + ' vs ' + awayTeam;
+    document.getElementById('finishHomeLabel').textContent = homeTeam;
+    document.getElementById('finishAwayLabel').textContent = awayTeam;
+    document.getElementById('finishHomeScore').value = homeScore || 0;
+    document.getElementById('finishAwayScore').value = awayScore || 0;
+    document.getElementById('finishForm').action = '/admin/matches/' + matchId + '/finish';
+    new bootstrap.Modal(document.getElementById('finishModal')).show();
+}
+</script>
+{% endblock %}

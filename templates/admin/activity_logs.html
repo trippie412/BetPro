@@ -1,0 +1,98 @@
+{% extends "admin/layout.html" %}
+
+{% block title %}Activity Logs{% endblock %}
+
+{% block breadcrumb %}
+<i class="fas fa-history me-1"></i> Activity Logs
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h4><i class="fas fa-history me-2 text-primary"></i>Admin Activity Logs</h4>
+</div>
+
+<div class="filter-bar">
+    <form method="GET" class="d-flex gap-2 align-items-center flex-wrap">
+        <select name="action" class="form-select form-select-sm" onchange="this.form.submit()" style="max-width: 180px;">
+            <option value="">All Actions</option>
+            {% for a in actions %}
+            <option value="{{ a }}" {{ 'selected' if action_filter == a }}>{{ a }}</option>
+            {% endfor %}
+        </select>
+        <select name="admin_id" class="form-select form-select-sm" onchange="this.form.submit()" style="max-width: 180px;">
+            <option value="">All Admins</option>
+            {% for admin in admins %}
+            <option value="{{ admin.id }}" {{ 'selected' if selected_admin_id == admin.id }}>{{ admin.username }}</option>
+            {% endfor %}
+        </select>
+        {% if action_filter or selected_admin_id %}
+        <a href="{{ url_for('admin.activity_logs') }}" class="btn btn-sm btn-outline-secondary">Clear</a>
+        {% endif %}
+        <span class="text-muted small ms-auto">{{ logs.total }} entries</span>
+    </form>
+</div>
+
+<div class="table-container">
+    <div class="table-responsive">
+        <table class="table table-hover datatable">
+            <thead>
+                <tr>
+                    <th>Time</th>
+                    <th>Admin</th>
+                    <th>Action</th>
+                    <th>Target</th>
+                    <th>Details</th>
+                    <th>IP</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in logs.items %}
+                <tr>
+                    <td><small class="text-muted">{{ log.created_at.strftime('%d %b %Y %H:%M') }}</small></td>
+                    <td>
+                        <a href="{{ url_for('admin.user_detail', user_id=log.admin_id) }}" class="text-decoration-none">
+                            {{ log.admin.username }}
+                        </a>
+                    </td>
+                    <td><span class="badge bg-info">{{ log.action }}</span></td>
+                    <td>
+                        {% if log.target_user_id %}
+                        <a href="{{ url_for('admin.user_detail', user_id=log.target_user_id) }}">
+                            User #{{ log.target_user_id }}
+                        </a>
+                        {% else %}
+                        <span class="text-muted">-</span>
+                        {% endif %}
+                    </td>
+                    <td><small>{{ log.details or '' }}</small></td>
+                    <td><small class="text-muted"><code>{{ log.ip_address or '' }}</code></small></td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" class="text-center text-muted py-4">
+                        <i class="fas fa-history fa-2x mb-2 d-block opacity-25"></i>
+                        No activity logs found
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% if logs.pages > 1 %}
+<nav>
+    <ul class="pagination justify-content-center">
+        {% for page_num in logs.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+            {% if page_num %}
+            <li class="page-item {{ 'active' if page_num == logs.page }}">
+                <a class="page-link" href="{{ url_for('admin.activity_logs', page=page_num, action=action_filter, admin_id=selected_admin_id) }}">{{ page_num }}</a>
+            </li>
+            {% else %}
+            <li class="page-item disabled"><span class="page-link">...</span></li>
+            {% endif %}
+        {% endfor %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}

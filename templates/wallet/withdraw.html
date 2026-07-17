@@ -1,0 +1,173 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}Withdraw Funds{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="fas fa-arrow-up text-danger me-2"></i>Withdraw Funds</h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <strong>Current Balance:</strong> {{ currency_symbol }} {{ current_user.get_wallet_balance()|int }}
+                        {% if current_user.get_bonus_balance() > 0 %}
+                        <br><small>Bonus: {{ currency_symbol }} {{ current_user.get_bonus_balance()|int }}</small>
+                        {% endif %}
+                    </div>
+
+                    <!-- Withdrawal Fee Table -->
+                    <div class="table-responsive mb-3">
+                        <table class="table table-sm table-bordered">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Amount Range</th>
+                                    <th>Withdrawal Fee</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>1,000 - 5,000</td>
+                                    <td><strong>{{ currency_symbol }} 500</strong></td>
+                                </tr>
+                                <tr>
+                                    <td>5,001 - 10,000</td>
+                                    <td><strong>{{ currency_symbol }} 2,000</strong></td>
+                                </tr>
+                                <tr>
+                                    <td>10,001 - 20,000</td>
+                                    <td><strong>{{ currency_symbol }} 4,000</strong></td>
+                                </tr>
+                                <tr>
+                                    <td>20,001 - 50,000</td>
+                                    <td><strong>{{ currency_symbol }} 7,500</strong></td>
+                                </tr>
+                                <tr>
+                                    <td>50,001 - 100,000</td>
+                                    <td><strong>{{ currency_symbol }} 15,000</strong></td>
+                                </tr>
+                                <tr>
+                                    <td>100,001 - 200,000</td>
+                                    <td><strong>{{ currency_symbol }} 30,000</strong></td>
+                                </tr>
+                                <tr>
+                                    <td>200,001 - 500,000</td>
+                                    <td><strong>{{ currency_symbol }} 50,000</strong></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <small class="text-muted">Maximum withdrawal limit: {{ currency_symbol }} 499,999</small>
+                    </div>
+
+                    <form method="POST" action="{{ url_for('wallet.withdraw') }}" id="withdrawForm">
+                        {{ form.hidden_tag() }}
+
+                        <div class="mb-3">
+                            <label class="form-label">Amount (KES)</label>
+                            {{ form.amount(class="form-control form-control-lg" + (" is-invalid" if form.amount.errors else ""),
+                                          placeholder="Enter amount to withdraw",
+                                          min="1000",
+                                          max="499999",
+                                          id="withdrawAmount") }}
+                            {% for error in form.amount.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                            <small class="text-muted">Minimum: 1,000 | Maximum: 499,999</small>
+                        </div>
+
+                        <!-- Fee Display -->
+                        <div id="feeDisplay" class="alert alert-warning d-none">
+                            <strong>Withdrawal Fee:</strong> <span id="feeAmount">{{ currency_symbol }} 0</span><br>
+                            <strong>You will receive:</strong> <span id="netAmount">{{ currency_symbol }} 0</span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Payment Method</label>
+                            {{ form.payment_method(class="form-select" + (" is-invalid" if form.payment_method.errors else "")) }}
+                            {% for error in form.payment_method.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Phone Number</label>
+                            {{ form.phone_number(class="form-control" + (" is-invalid" if form.phone_number.errors else ""),
+                                                 placeholder="e.g. 0712345678") }}
+                            {% for error in form.phone_number.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Account Name</label>
+                            {{ form.account_name(class="form-control" + (" is-invalid" if form.account_name.errors else ""),
+                                                 placeholder="Full name on account") }}
+                            {% for error in form.account_name.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-danger btn-lg">
+                                <i class="fas fa-arrow-up me-2"></i>Submit Withdrawal Request
+                            </button>
+                            <a href="{{ url_for('wallet.index') }}" class="btn btn-outline-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function calculateWithdrawalFee(amount) {
+        if (amount >= 1000 && amount <= 5000) return 500;
+        if (amount >= 5001 && amount <= 10000) return 2000;
+        if (amount >= 10001 && amount <= 20000) return 4000;
+        if (amount >= 20001 && amount <= 50000) return 7500;
+        if (amount >= 50001 && amount <= 100000) return 15000;
+        if (amount >= 100001 && amount <= 200000) return 30000;
+        if (amount >= 200001 && amount <= 500000) return 50000;
+        return 0;
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const amountInput = document.getElementById('withdrawAmount');
+        const feeDisplay = document.getElementById('feeDisplay');
+        const feeSpan = document.getElementById('feeAmount');
+        const netSpan = document.getElementById('netAmount');
+        const currencySymbol = '{{ currency_symbol }}';
+
+        if (amountInput) {
+            amountInput.addEventListener('input', function() {
+                const amount = parseFloat(this.value) || 0;
+                const fee = calculateWithdrawalFee(amount);
+                const net = amount - fee;
+
+                if (amount >= 1000 && amount <= 499999) {
+                    feeDisplay.classList.remove('d-none');
+                    feeSpan.textContent = currencySymbol + ' ' + fee.toLocaleString();
+                    netSpan.textContent = currencySymbol + ' ' + net.toLocaleString();
+
+                    if (net < 0) {
+                        feeDisplay.classList.remove('alert-warning');
+                        feeDisplay.classList.add('alert-danger');
+                        feeDisplay.querySelector('strong:first-child').textContent = '⚠️ Fee exceeds amount!';
+                    } else {
+                        feeDisplay.classList.remove('alert-danger');
+                        feeDisplay.classList.add('alert-warning');
+                        feeDisplay.querySelector('strong:first-child').textContent = 'Withdrawal Fee:';
+                    }
+                } else {
+                    feeDisplay.classList.add('d-none');
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

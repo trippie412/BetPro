@@ -1,0 +1,53 @@
+{% extends "admin/layout.html" %}
+
+{% block title %}{{ 'Edit' if edit else 'Create' }} Announcement{% endblock %}
+
+{% block breadcrumb %}
+<i class="fas fa-bullhorn me-1"></i> <a href="{{ url_for('admin.announcements') }}">Announcements</a> / {{ 'Edit' if edit else 'Create' }}
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h4><i class="fas fa-{{ 'edit' if edit else 'plus' }} me-2 text-primary"></i>{{ 'Edit' if edit else 'Create' }} Announcement</h4>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="table-container">
+            <form method="POST" action="">
+                {{ form.hidden_tag() }}
+
+                <div class="mb-3">
+                    {{ form.title.label(class="form-label") }}
+                    {{ form.title(class="form-control" + (" is-invalid" if form.title.errors else ""), placeholder="Announcement title") }}
+                    {% for error in form.title.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
+                </div>
+
+                <div class="mb-3">
+                    {{ form.priority.label(class="form-label") }}
+                    {{ form.priority(class="form-select" + (" is-invalid" if form.priority.errors else "")) }}
+                    {% for error in form.priority.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
+                </div>
+
+                <div class="mb-3">
+                    {{ form.content.label(class="form-label") }}
+                    {{ form.content(class="form-control" + (" is-invalid" if form.content.errors else ""), rows=6, placeholder="Announcement content...") }}
+                    {% for error in form.content.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
+                </div>
+
+                <div class="mb-3 form-check form-switch">
+                    {{ form.is_active(class="form-check-input") }}
+                    {{ form.is_active.label(class="form-check-label") }}
+                </div>
+
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-1"></i>{{ 'Update' if edit else 'Create' }} Announcement
+                    </button>
+                    <a href="{{ url_for('admin.announcements') }}" class="btn btn-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

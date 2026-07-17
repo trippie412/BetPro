@@ -1,0 +1,91 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}
+{{ sport.name }}
+{% endblock %}
+
+{% block content %}
+
+<div class="container py-4">
+
+    <h2>{{ sport.name }}</h2>
+
+    {% if sport.description %}
+        <p class="text-muted">
+            {{ sport.description }}
+        </p>
+    {% endif %}
+
+    {% for item in league_data %}
+
+        <div class="card mb-4">
+
+            <div class="card-header">
+
+                <strong>{{ item.league.name }}</strong>
+
+            </div>
+
+            <div class="card-body">
+
+            {% if item.matches %}
+
+                <table class="table table-striped">
+
+                    <thead>
+
+                        <tr>
+
+                            <th>Home</th>
+
+                            <th>Away</th>
+
+                            <th>Date</th>
+
+                            <th>Status</th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                    {% for match in item.matches %}
+
+                        <tr>
+
+                            <td>{{ match.home_team }}</td>
+
+                            <td>{{ match.away_team }}</td>
+
+                            <td>{{ match.match_date }}</td>
+
+                            <td>{{ match.status }}</td>
+
+                        </tr>
+
+                    {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            {% else %}
+
+                <div class="alert alert-secondary">
+
+                    No matches available.
+
+                </div>
+
+            {% endif %}
+
+            </div>
+
+        </div>
+
+    {% endfor %}
+
+</div>
+
+{% endblock %}

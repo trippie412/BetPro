@@ -1,0 +1,44 @@
+{% extends "admin/layout.html" %}
+
+{% block title %}Wallet Adjustments{% endblock %}
+
+{% block breadcrumb %}
+<i class="fas fa-wallet me-1"></i> <a href="{{ url_for('admin.wallet') }}">Wallet</a> / Adjustments
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h4><i class="fas fa-plus-circle me-2 text-primary"></i>Manual Wallet Adjustment</h4>
+</div>
+
+<div class="row">
+    <div class="col-lg-6">
+        <div class="table-container">
+            <h5>Add Funds to User Wallet</h5>
+            <form method="POST" action="{{ url_for('admin.add_wallet_funds') }}" class="row g-3">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="col-12">
+                    <label class="form-label">User</label>
+                    <select name="user_id" class="form-select" required>
+                        <option value="">Select User...</option>
+                        {% for u in users %}
+                        <option value="{{ u.id }}">{{ u.username }} ({{ u.email }}) - Bal: {{ currency_symbol }}{{ u.get_wallet_balance()|int }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Amount (KES)</label>
+                    <input type="number" name="amount" class="form-control" min="1" step="0.01" required placeholder="0.00">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Reason</label>
+                    <input type="text" name="description" class="form-control" placeholder="e.g. Promotion, refund" value="Admin adjustment">
+                </div>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-plus me-1"></i>Add Funds</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

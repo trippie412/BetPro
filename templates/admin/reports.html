@@ -1,0 +1,175 @@
+{% extends "admin/layout.html" %}
+
+{% block title %}Reports{% endblock %}
+
+{% block breadcrumb %}
+<i class="fas fa-file-alt me-1"></i> Reports
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h4><i class="fas fa-file-alt me-2 text-primary"></i>Reports</h4>
+    <div class="btn-group">
+        <a href="{{ url_for('admin.reports', period='daily') }}" class="btn btn-sm {{ 'btn-primary' if selected_period == 'daily' else 'btn-outline-primary' }}">Daily</a>
+        <a href="{{ url_for('admin.reports', period='weekly') }}" class="btn btn-sm {{ 'btn-primary' if selected_period == 'weekly' else 'btn-outline-primary' }}">Weekly</a>
+        <a href="{{ url_for('admin.reports', period='monthly') }}" class="btn btn-sm {{ 'btn-primary' if selected_period == 'monthly' else 'btn-outline-primary' }}">Monthly</a>
+    </div>
+</div>
+
+<!-- Revenue Summary -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="card-body">
+                <div class="stat-label">Total Stake</div>
+                <div class="stat-value" style="font-size: 1.4rem;">{{ currency_symbol }} {{ revenue|sum(attribute='stakes')|default(0)|int }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="card-body">
+                <div class="stat-label">Total Payout</div>
+                <div class="stat-value" style="font-size: 1.4rem;">{{ currency_symbol }} {{ revenue|sum(attribute='winnings')|default(0)|int }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="card-body">
+                <div class="stat-label">Total Bets</div>
+                <div class="stat-value" style="font-size: 1.4rem;">{{ revenue|sum(attribute='bets')|default(0) }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="card-body">
+                <div class="stat-label">Profit / Loss</div>
+                <div class="stat-value" style="font-size: 1.4rem; color: {{ 'green' if (revenue|sum(attribute='stakes')|default(0) - revenue|sum(attribute='winnings')|default(0)) >= 0 else 'red' }}">
+                    {{ currency_symbol }} {{ (revenue|sum(attribute='stakes')|default(0) - revenue|sum(attribute='winnings')|default(0))|int }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Daily Breakdown -->
+<div class="table-container mb-4">
+    <h5><i class="fas fa-calendar me-2 text-primary"></i>{{ selected_period|capitalize }} Breakdown</h5>
+    <div class="table-responsive">
+        <table class="table table-hover table-sm datatable">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Bets</th>
+                    <th>Total Stake</th>
+                    <th>Total Winnings</th>
+                    <th>Profit/Loss</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in revenue %}
+                <tr>
+                    <td><strong>{{ row.date }}</strong></td>
+                    <td>{{ row.bets }}</td>
+                    <td>{{ currency_symbol }} {{ row.stakes|int }}</td>
+                    <td>{{ currency_symbol }} {{ row.winnings|int }}</td>
+                    <td class="{{ 'text-success' if row.stakes >= row.winnings else 'text-danger' }}">
+                        <strong>{{ currency_symbol }} {{ (row.stakes - row.winnings)|int }}</strong>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" class="text-center text-muted py-4">No data for this period</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="row g-3">
+    <!-- Most Popular Matches -->
+    <div class="col-lg-6">
+        <div class="table-container">
+            <h5><i class="fas fa-fire me-2 text-danger"></i>Most Popular Matches</h5>
+            <div class="table-responsive">
+                <table class="table table-hover table-sm">
+                    <thead>
+                        <tr>
+                            <th>Match</th>
+                            <th>Selections</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for m in popular_matches %}
+                        <tr>
+                            <td>{{ m.home_team }} vs {{ m.away_team }}</td>
+                            <td><span class="badge bg-primary">{{ m.selection_count }}</span></td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="2" class="text-center text-muted py-3">No data</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="table-container">
+            <h5><i class="fas fa-trophy me-2 text-warning"></i>Top Depositors</h5>
+            <div class="table-responsive">
+                <table class="table table-hover table-sm">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Total Deposits</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for u in top_depositors %}
+                        <tr>
+                            <td><a href="{{ url_for('admin.user_detail', user_id=u.id) }}">{{ u.username }}</a></td>
+                            <td><strong>{{ currency_symbol }} {{ u.total_deposits|int }}</strong></td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="2" class="text-center text-muted py-3">No data</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mt-3">
+    <div class="col-lg-6">
+        <div class="table-container">
+            <h5><i class="fas fa-users me-2 text-info"></i>Top Bettors</h5>
+            <div class="table-responsive">
+                <table class="table table-hover table-sm">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Total Bets</th>
+                            <th>Total Staked</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for u in top_bettors %}
+                        <tr>
+                            <td><a href="{{ url_for('admin.user_detail', user_id=u.id) }}">{{ u.username }}</a></td>
+                            <td>{{ u.total_bets }}</td>
+                            <td><strong>{{ currency_symbol }} {{ u.total_stakes|int }}</strong></td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="3" class="text-center text-muted py-3">No data</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

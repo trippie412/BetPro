@@ -1,0 +1,38 @@
+<nav class="top-navbar">
+    <div>
+        <button class="toggle-sidebar" onclick="document.querySelector('.sidebar').classList.toggle('show')">
+            <i class="fas fa-bars"></i>
+        </button>
+        <span class="d-none d-sm-inline" style="font-size: 0.9rem; color: #6c757d;">
+            {% block breadcrumb %}{% endblock %}
+        </span>
+    </div>
+    <div class="navbar-right">
+        <a href="{{ url_for('admin.deposits') }}?status=pending" class="nav-link" title="Pending Deposits">
+            <i class="fas fa-arrow-down"></i>
+            {% if pending_deposits is defined and pending_deposits > 0 %}
+            <span class="badge-count">{{ pending_deposits }}</span>
+            {% endif %}
+        </a>
+        <a href="{{ url_for('admin.withdrawals') }}?status=pending" class="nav-link" title="Pending Withdrawals">
+            <i class="fas fa-arrow-up"></i>
+            {% if pending_withdrawals is defined and pending_withdrawals > 0 %}
+            <span class="badge-count">{{ pending_withdrawals }}</span>
+            {% endif %}
+        </a>
+        <div class="dropdown">
+            <a href="#" class="admin-profile dropdown-toggle" data-bs-toggle="dropdown">
+                <img src="{{ url_for('static', filename='uploads/profile_pictures/' + (current_user.profile_picture or 'default.png')) }}"
+                     alt="Profile"
+                     onerror="this.src='https://ui-avatars.com/api/?name={{ current_user.username }}&background=0d6efd&color=fff&size=32'">
+                <span class="d-none d-md-inline">{{ current_user.username }}</span>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end">
+                <li><a class="dropdown-item" href="{{ url_for('profile.index') }}"><i class="fas fa-user me-2"></i>My Profile</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('dashboard.index') }}"><i class="fas fa-tachometer-alt me-2"></i>User Dashboard</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>

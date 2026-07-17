@@ -1,0 +1,79 @@
+{% extends "admin/layout.html" %}
+
+{% block title %}{{ 'Edit' if edit else 'Create' }} Sport{% endblock %}
+
+{% block breadcrumb %}
+<i class="fas fa-list me-1"></i> <a href="{{ url_for('admin.sports') }}">Sports</a> / {{ 'Edit' if edit else 'Create' }}
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h4><i class="fas fa-{{ 'edit' if edit else 'plus' }} me-2 text-primary"></i>{{ 'Edit' if edit else 'Create' }} Sport</h4>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="table-container">
+            <form method="POST" action="">
+                {{ form.hidden_tag() }}
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            {{ form.name.label(class="form-label") }}
+                            {{ form.name(class="form-control" + (" is-invalid" if form.name.errors else ""), placeholder="e.g. Football") }}
+                            {% for error in form.name.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            {{ form.slug.label(class="form-label") }}
+                            {{ form.slug(class="form-control" + (" is-invalid" if form.slug.errors else ""), placeholder="e.g. football") }}
+                            {% for error in form.slug.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
+                            <small class="text-muted">URL-friendly name (auto-generated if left empty on some setups)</small>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            {{ form.icon.label(class="form-label") }}
+                            {{ form.icon(class="form-control" + (" is-invalid" if form.icon.errors else ""), placeholder="e.g. fa-futbol") }}
+                            {% for error in form.icon.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
+                            <small class="text-muted">Font Awesome icon class</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="mb-3">
+                            {{ form.display_order.label(class="form-label") }}
+                            {{ form.display_order(class="form-control" + (" is-invalid" if form.display_order.errors else "")) }}
+                            {% for error in form.display_order.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="mb-3">
+                            <label class="form-label">&nbsp;</label>
+                            <div class="form-check form-switch mt-2">
+                                {{ form.is_active(class="form-check-input") }}
+                                {{ form.is_active.label(class="form-check-label") }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="mb-3">
+                            {{ form.description.label(class="form-label") }}
+                            {{ form.description(class="form-control" + (" is-invalid" if form.description.errors else ""), rows=3, placeholder="Optional description...") }}
+                            {% for error in form.description.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-1"></i>{{ 'Update' if edit else 'Create' }} Sport
+                    </button>
+                    <a href="{{ url_for('admin.sports') }}" class="btn btn-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

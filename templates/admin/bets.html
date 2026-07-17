@@ -1,0 +1,98 @@
+{% extends "admin/layout.html" %}
+
+{% block title %}Bets{% endblock %}
+
+{% block breadcrumb %}
+<i class="fas fa-receipt me-1"></i> Bets
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h4><i class="fas fa-receipt me-2 text-warning"></i>Bet Management</h4>
+</div>
+
+<div class="filter-bar">
+    <form method="GET" class="d-flex gap-2 align-items-center flex-wrap">
+        <select name="status" class="form-select form-select-sm" onchange="this.form.submit()" style="max-width: 150px;">
+            <option value="all" {{ 'selected' if current_status == 'all' }}>All Status</option>
+            <option value="pending" {{ 'selected' if current_status == 'pending' }}>Pending</option>
+            <option value="won" {{ 'selected' if current_status == 'won' }}>Won</option>
+            <option value="lost" {{ 'selected' if current_status == 'lost' }}>Lost</option>
+            <option value="void" {{ 'selected' if current_status == 'void' }}>Void</option>
+        </select>
+        <span class="text-muted small ms-auto">{{ bets.total }} bets found</span>
+    </form>
+</div>
+
+<div class="table-container">
+    <div class="table-responsive">
+        <table class="table table-hover datatable">
+            <thead>
+                <tr>
+                    <th>Reference</th>
+                    <th>User</th>
+                    <th>Type</th>
+                    <th>Stake</th>
+                    <th>Odds</th>
+                    <th>Potential</th>
+                    <th>Winnings</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for bet in bets.items %}
+                <tr>
+                    <td><small><code>{{ bet.bet_reference[:12] }}</code></small></td>
+                    <td>
+                        <a href="{{ url_for('admin.user_detail', user_id=bet.user_id) }}" class="text-decoration-none">
+                            {{ bet.user.username }}
+                        </a>
+                    </td>
+                    <td><span class="badge bg-info">{{ bet.bet_type }}</span></td>
+                    <td><strong>{{ currency_symbol }} {{ bet.stake|int }}</strong></td>
+                    <td>{{ bet.total_odds }}</td>
+                    <td>{{ currency_symbol }} {{ bet.potential_winnings|int }}</td>
+                    <td>{{ currency_symbol }} {{ (bet.winnings or 0)|int }}</td>
+                    <td>
+                        {% if bet.status == 'pending' %}
+                        <span class="badge bg-warning text-dark">Pending</span>
+                        {% elif bet.status == 'won' %}
+                        <span class="badge bg-success">Won</span>
+                        {% elif bet.status == 'lost' %}
+                        <span class="badge bg-danger">Lost</span>
+                        {% elif bet.status == 'void' %}
+                        <span class="badge bg-secondary">Void</span>
+                        {% endif %}
+                    </td>
+                    <td><small class="text-muted">{{ bet.created_at.strftime('%d %b %Y %H:%M') }}</small></td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="9" class="text-center text-muted py-4">
+                        <i class="fas fa-receipt fa-2x mb-2 d-block opacity-25"></i>
+                        No bets found
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% if bets.pages > 1 %}
+<nav>
+    <ul class="pagination justify-content-center">
+        {% for page_num in bets.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+            {% if page_num %}
+            <li class="page-item {{ 'active' if page_num == bets.page }}">
+                <a class="page-link" href="{{ url_for('admin.bets', page=page_num, status=current_status) }}">{{ page_num }}</a>
+            </li>
+            {% else %}
+            <li class="page-item disabled"><span class="page-link">...</span></li>
+            {% endif %}
+        {% endfor %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}

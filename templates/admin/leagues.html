@@ -1,0 +1,84 @@
+{% extends "admin/layout.html" %}
+
+{% block title %}Leagues{% endblock %}
+
+{% block breadcrumb %}
+<i class="fas fa-tags me-1"></i> Leagues
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h4><i class="fas fa-tags me-2 text-primary"></i>League Management</h4>
+    <a href="{{ url_for('admin.create_league') }}" class="btn btn-primary">
+        <i class="fas fa-plus me-1"></i>Create League
+    </a>
+</div>
+
+<div class="filter-bar">
+    <form method="GET" class="d-flex gap-2 align-items-center flex-wrap">
+        <select name="sport_id" class="form-select form-select-sm" onchange="this.form.submit()">
+            <option value="">All Sports</option>
+            {% for sport in sports %}
+            <option value="{{ sport.id }}" {{ 'selected' if request.args.get('sport_id', type=int) == sport.id }}>{{ sport.name }}</option>
+            {% endfor %}
+        </select>
+    </form>
+</div>
+
+<div class="table-container">
+    <div class="table-responsive">
+        <table class="table table-hover datatable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Sport</th>
+                    <th>Country</th>
+                    <th>Matches</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for league in leagues %}
+                <tr>
+                    <td>#{{ league.id }}</td>
+                    <td><strong>{{ league.name }}</strong></td>
+                    <td><span class="badge bg-info">{{ league.sport.name }}</span></td>
+                    <td>{{ league.country or '-' }}</td>
+                    <td>{{ league.matches.count() }}</td>
+                    <td>
+                        {% if league.is_active %}
+                        <span class="badge bg-success">Active</span>
+                        {% else %}
+                        <span class="badge bg-secondary">Inactive</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="btn-group-action">
+                            <a href="{{ url_for('admin.edit_league', league_id=league.id) }}" class="btn btn-sm btn-outline-primary" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <form method="POST" action="{{ url_for('admin.delete_league', league_id=league.id) }}" class="d-inline"
+                                  onsubmit="return confirm('Delete {{ league.name }}? This will also delete all associated matches.')">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button class="btn btn-sm btn-outline-danger" title="Delete">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" class="text-center text-muted py-4">
+                        <i class="fas fa-tags fa-2x mb-2 d-block opacity-25"></i>
+                        No leagues found. <a href="{{ url_for('admin.create_league') }}">Create one</a>.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

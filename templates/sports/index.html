@@ -1,0 +1,70 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}Sports{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+    <h2 class="mb-4">
+        <i class="fas fa-futbol"></i> Sports
+    </h2>
+
+    <div class="row">
+
+    {% for item in sport_data %}
+
+        <div class="col-md-4 mb-4">
+
+            <div class="card shadow-sm h-100">
+
+                <div class="card-body">
+
+                    <h4>{{ item.sport.name }}</h4>
+
+                    {% if item.sport.description %}
+                    <p class="text-muted">
+                        {{ item.sport.description }}
+                    </p>
+                    {% endif %}
+
+                    <hr>
+
+                    <p>
+                        <strong>Leagues:</strong>
+                        {{ item.league_count }}
+                    </p>
+
+                    <p>
+                        <strong>Matches:</strong>
+                        {{ item.match_count }}
+                    </p>
+
+                    <a href="{{ url_for('sports.detail', sport_slug=item.sport.slug) }}"
+                       class="btn btn-primary">
+                        View {{ item.sport.name }}
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    {% else %}
+
+        <div class="col-12">
+
+            <div class="alert alert-info">
+
+                No sports available.
+
+            </div>
+
+        </div>
+
+    {% endfor %}
+
+    </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,124 @@
+{% extends "admin/layout.html" %}
+
+{% block title %}Edit Odds - {{ match.home_team }} vs {{ match.away_team }}{% endblock %}
+
+{% block breadcrumb %}
+<i class="fas fa-futbol me-1"></i> <a href="{{ url_for('admin.matches') }}">Matches</a> / Odds
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h4>
+        <i class="fas fa-percentage me-2 text-primary"></i>
+        Odds: {{ match.home_team }} vs {{ match.away_team }}
+        <small class="text-muted ms-2">{{ match.match_date.strftime('%d %b %Y %H:%M') }}</small>
+    </h4>
+    <div>
+        <form method="POST" action="{{ url_for('admin.close_betting', match_id=match.id) }}" class="d-inline">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button class="btn btn-warning btn-sm"><i class="fas fa-lock me-1"></i>Close Betting</button>
+        </form>
+        <form method="POST" action="{{ url_for('admin.open_betting', match_id=match.id) }}" class="d-inline">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button class="btn btn-success btn-sm"><i class="fas fa-lock-open me-1"></i>Open Betting</button>
+        </form>
+        <a href="{{ url_for('admin.matches') }}" class="btn btn-secondary btn-sm"><i class="fas fa-arrow-left me-1"></i>Back</a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="table-container">
+            <h5>Match Odds</h5>
+            <form method="POST" action="">
+                {{ form.hidden_tag() }}
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            {{ form.home_win.label(class="form-label") }}
+                            {{ form.home_win(class="form-control", step="0.01", min="1.0") }}
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            {{ form.draw.label(class="form-label") }}
+                            {{ form.draw(class="form-control", step="0.01", min="1.0") }}
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            {{ form.away_win.label(class="form-label") }}
+                            {{ form.away_win(class="form-control", step="0.01", min="1.0") }}
+                        </div>
+                    </div>
+                </div>
+
+                <h5 class="mt-4">Over / Under</h5>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            {{ form.over_under_line.label(class="form-label") }}
+                            {{ form.over_under_line(class="form-control", step="0.5") }}
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            {{ form.over.label(class="form-label") }}
+                            {{ form.over(class="form-control", step="0.01", min="1.0") }}
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            {{ form.under.label(class="form-label") }}
+                            {{ form.under(class="form-control", step="0.01", min="1.0") }}
+                        </div>
+                    </div>
+                </div>
+
+                <h5 class="mt-4">Both Teams To Score (BTTS)</h5>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            {{ form.btts_yes.label(class="form-label") }}
+                            {{ form.btts_yes(class="form-control", step="0.01", min="1.0") }}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            {{ form.btts_no.label(class="form-label") }}
+                            {{ form.btts_no(class="form-control", step="0.01", min="1.0") }}
+                        </div>
+                    </div>
+                </div>
+
+                <h5 class="mt-4">Double Chance</h5>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            {{ form.double_chance_1x.label(class="form-label") }}
+                            {{ form.double_chance_1x(class="form-control", step="0.01", min="1.0") }}
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            {{ form.double_chance_12.label(class="form-label") }}
+                            {{ form.double_chance_12(class="form-control", step="0.01", min="1.0") }}
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            {{ form.double_chance_2x.label(class="form-label") }}
+                            {{ form.double_chance_2x(class="form-control", step="0.01", min="1.0") }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-save me-1"></i>Save Odds</button>
+                    <a href="{{ url_for('admin.matches') }}" class="btn btn-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

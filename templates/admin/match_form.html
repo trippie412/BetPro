@@ -1,0 +1,140 @@
+{% extends "admin/layout.html" %}
+
+{% block title %}{{ 'Edit' if edit else 'Create' }} Match{% endblock %}
+
+{% block breadcrumb %}
+<i class="fas fa-futbol me-1"></i> <a href="{{ url_for('admin.matches') }}">Matches</a> / {{ 'Edit' if edit else 'Create' }}
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h4><i class="fas fa-{{ 'edit' if edit else 'plus' }} me-2 text-primary"></i>{{ 'Edit' if edit else 'Create' }} Match</h4>
+</div>
+
+<div class="row">
+    <div class="col-lg-10">
+        <div class="table-container">
+            <form method="POST" action="">
+                {{ form.hidden_tag() }}
+
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            {{ form.sport_id.label(class="form-label") }}
+                            {{ form.sport_id(class="form-select" + (" is-invalid" if form.sport_id.errors else "")) }}
+                            {% for error in form.sport_id.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            {{ form.league_id.label(class="form-label") }}
+                            {{ form.league_id(class="form-select" + (" is-invalid" if form.league_id.errors else "")) }}
+                            {% for error in form.league_id.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="mb-3">
+                            {{ form.status.label(class="form-label") }}
+                            {{ form.status(class="form-select" + (" is-invalid" if form.status.errors else "")) }}
+                            {% for error in form.status.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="mb-3">
+                            <label class="form-label">&nbsp;</label>
+                            <div class="d-flex gap-2 mt-2">
+                                <div class="form-check form-switch">
+                                    {{ form.is_featured(class="form-check-input") }}
+                                    {{ form.is_featured.label(class="form-check-label") }}
+                                </div>
+                                <div class="form-check form-switch">
+                                    {{ form.is_live(class="form-check-input") }}
+                                    {{ form.is_live.label(class="form-check-label") }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            {{ form.home_team.label(class="form-label") }}
+                            {{ form.home_team(class="form-control" + (" is-invalid" if form.home_team.errors else ""), placeholder="Home Team") }}
+                            {% for error in form.home_team.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            {{ form.away_team.label(class="form-label") }}
+                            {{ form.away_team(class="form-control" + (" is-invalid" if form.away_team.errors else ""), placeholder="Away Team") }}
+                            {% for error in form.away_team.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            {{ form.match_date.label(class="form-label") }}
+                            {{ form.match_date(class="form-control" + (" is-invalid" if form.match_date.errors else ""), type="datetime-local") }}
+                            {% for error in form.match_date.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="mb-3">
+                            <label class="form-label">Home Score</label>
+                            {{ form.home_score(class="form-control" + (" is-invalid" if form.home_score.errors else "")) }}
+                            {% for error in form.home_score.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="mb-3">
+                            <label class="form-label">Away Score</label>
+                            {{ form.away_score(class="form-control" + (" is-invalid" if form.away_score.errors else "")) }}
+                            {% for error in form.away_score.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="mb-3">
+                            {{ form.notes.label(class="form-label") }}
+                            {{ form.notes(class="form-control" + (" is-invalid" if form.notes.errors else ""), rows=2) }}
+                            {% for error in form.notes.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-1"></i>{{ 'Update' if edit else 'Create' }} Match
+                    </button>
+                    <a href="{{ url_for('admin.matches') }}" class="btn btn-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Auto-fill league choices based on sport selection
+    document.addEventListener('DOMContentLoaded', function() {
+        const sportSelect = document.getElementById('sport_id');
+        const leagueSelect = document.getElementById('league_id');
+
+        if (sportSelect && leagueSelect) {
+            sportSelect.addEventListener('change', function() {
+                const sportId = this.value;
+                if (sportId) {
+                    fetch('/admin/leagues/by-sport/' + sportId)
+                        .then(r => r.json())
+                        .then(data => {
+                            leagueSelect.innerHTML = '';
+                            data.forEach(function(l) {
+                                const opt = document.createElement('option');
+                                opt.value = l.id;
+                                opt.textContent = l.name;
+                                leagueSelect.appendChild(opt);
+                            });
+                        });
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

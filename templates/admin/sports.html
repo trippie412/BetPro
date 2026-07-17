@@ -1,0 +1,77 @@
+{% extends "admin/layout.html" %}
+
+{% block title %}Sports{% endblock %}
+
+{% block breadcrumb %}
+<i class="fas fa-list me-1"></i> Sports
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h4><i class="fas fa-list me-2 text-primary"></i>Sports Management</h4>
+    <a href="{{ url_for('admin.create_sport') }}" class="btn btn-primary">
+        <i class="fas fa-plus me-1"></i>Create Sport
+    </a>
+</div>
+
+<div class="table-container">
+    <div class="table-responsive">
+        <table class="table table-hover datatable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Icon</th>
+                    <th>Name</th>
+                    <th>Slug</th>
+                    <th>Order</th>
+                    <th>Leagues</th>
+                    <th>Matches</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sport in sports %}
+                <tr>
+                    <td>#{{ sport.id }}</td>
+                    <td><i class="fas {{ sport.icon or 'fa-sports' }} fa-lg text-primary"></i></td>
+                    <td><strong>{{ sport.name }}</strong></td>
+                    <td><code>{{ sport.slug }}</code></td>
+                    <td>{{ sport.display_order }}</td>
+                    <td>{{ sport.leagues.count() }}</td>
+                    <td>{{ sport.matches.count() }}</td>
+                    <td>
+                        {% if sport.is_active %}
+                        <span class="badge bg-success">Active</span>
+                        {% else %}
+                        <span class="badge bg-secondary">Inactive</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="btn-group-action">
+                            <a href="{{ url_for('admin.edit_sport', sport_id=sport.id) }}" class="btn btn-sm btn-outline-primary" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <form method="POST" action="{{ url_for('admin.delete_sport', sport_id=sport.id) }}" class="d-inline"
+                                  onsubmit="return confirm('Delete {{ sport.name }}? This will also delete all associated leagues and matches.')">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button class="btn btn-sm btn-outline-danger" title="Delete">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="9" class="text-center text-muted py-4">
+                        <i class="fas fa-list fa-2x mb-2 d-block opacity-25"></i>
+                        No sports found. <a href="{{ url_for('admin.create_sport') }}">Create one</a>.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

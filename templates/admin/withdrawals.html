@@ -1,0 +1,114 @@
+{% extends "admin/layout.html" %}
+
+{% block title %}Withdrawals{% endblock %}
+
+{% block breadcrumb %}
+<i class="fas fa-arrow-up me-1"></i> Withdrawals
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h4><i class="fas fa-arrow-up me-2 text-danger"></i>Withdrawal Management</h4>
+</div>
+
+<div class="filter-bar">
+    <form method="GET" class="d-flex gap-2 align-items-center flex-wrap">
+        <select name="status" class="form-select form-select-sm" onchange="this.form.submit()" style="max-width: 150px;">
+            <option value="pending" {{ 'selected' if current_status == 'pending' }}>Pending</option>
+            <option value="approved" {{ 'selected' if current_status == 'approved' }}>Approved</option>
+            <option value="rejected" {{ 'selected' if current_status == 'rejected' }}>Rejected</option>
+            <option value="all" {{ 'selected' if current_status == 'all' }}>All</option>
+        </select>
+        <span class="text-muted small ms-auto">{{ withdrawals.total }} withdrawals found</span>
+    </form>
+</div>
+
+<div class="table-container">
+    <div class="table-responsive">
+        <table class="table table-hover datatable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>User</th>
+                    <th>Amount</th>
+                    <th>Method</th>
+                    <th>Account</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for withdrawal in withdrawals.items %}
+                <tr>
+                    <td>#{{ withdrawal.id }}</td>
+                    <td>
+                        <a href="{{ url_for('admin.user_detail', user_id=withdrawal.user_id) }}" class="text-decoration-none">
+                            {{ withdrawal.user.username }}
+                        </a>
+                    </td>
+                    <td><strong>{{ currency_symbol }} {{ withdrawal.amount|int }}</strong></td>
+                    <td><small>{{ withdrawal.payment_method or '-' }}</small></td>
+                    <td><small>{{ withdrawal.account_number or '-' }}</small></td>
+                    <td>
+                        {% if withdrawal.status == 'pending' %}
+                        <span class="badge bg-warning text-dark">Pending</span>
+                        {% elif withdrawal.status == 'approved' %}
+                        <span class="badge bg-success">Approved</span>
+                        {% elif withdrawal.status == 'rejected' %}
+                        <span class="badge bg-danger">Rejected</span>
+                        {% endif %}
+                    </td>
+                    <td><small class="text-muted">{{ withdrawal.created_at.strftime('%d %b %Y %H:%M') }}</small></td>
+                    <td>
+                        {% if withdrawal.status == 'pending' %}
+                        <div class="btn-group-action">
+                            <form method="POST" action="{{ url_for('admin.approve_withdrawal', withdrawal_id=withdrawal.id) }}" class="d-inline">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button class="btn btn-sm btn-success" onclick="return confirm('Approve KES {{ withdrawal.amount|int }} withdrawal?')">
+                                    <i class="fas fa-check"></i>
+                                </button>
+                            </form>
+                            <form method="POST" action="{{ url_for('admin.reject_withdrawal', withdrawal_id=withdrawal.id) }}" class="d-inline">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button class="btn btn-sm btn-danger" onclick="return confirm('Reject this withdrawal?')">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </form>
+                        </div>
+                        {% else %}
+                        <small class="text-muted">
+                            {% if withdrawal.approver %}{{ withdrawal.approver.username }}{% endif %}
+                        </small>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="8" class="text-center text-muted py-4">
+                        <i class="fas fa-arrow-up fa-2x mb-2 d-block opacity-25"></i>
+                        No withdrawals found
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% if withdrawals.pages > 1 %}
+<nav>
+    <ul class="pagination justify-content-center">
+        {% for page_num in withdrawals.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+            {% if page_num %}
+            <li class="page-item {{ 'active' if page_num == withdrawals.page }}">
+                <a class="page-link" href="{{ url_for('admin.withdrawals', page=page_num, status=current_status) }}">{{ page_num }}</a>
+            </li>
+            {% else %}
+            <li class="page-item disabled"><span class="page-link">...</span></li>
+            {% endif %}
+        {% endfor %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,152 @@
+{% extends "admin/layout.html" %}
+
+{% block title %}Promotions{% endblock %}
+
+{% block breadcrumb %}
+<i class="fas fa-gift me-1"></i> Promotions
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h4><i class="fas fa-gift me-2 text-primary"></i>Promotions & Bonuses</h4>
+</div>
+
+<!-- Summary -->
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="card-body">
+                <div class="stat-label">Active Bonuses</div>
+                <div class="stat-value">{{ active_bonuses_count }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="card-body">
+                <div class="stat-label">Total Bonus Amount</div>
+                <div class="stat-value">{{ currency_symbol }} {{ total_bonus_amount|int }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="card-body">
+                <div class="stat-label">Welcome Bonuses</div>
+                <div class="stat-value">{{ welcome_bonuses|length }}</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Send Bonus -->
+<div class="table-container mb-4">
+    <h5><i class="fas fa-plus-circle me-2 text-success"></i>Send Bonus to User</h5>
+    <form method="POST" action="{{ url_for('admin.send_bonus') }}" class="row g-3">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="col-md-3">
+            <select name="user_id" class="form-select" required>
+                <option value="">Select User...</option>
+                {% for u in User.query.order_by(User.username).all() %}
+                <option value="{{ u.id }}">{{ u.username }} ({{ u.email }})</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2">
+            <input type="number" name="amount" class="form-control" placeholder="Amount" min="1" step="0.01" required>
+        </div>
+        <div class="col-md-2">
+            <select name="bonus_type" class="form-select">
+                <option value="promo">Promo</option>
+                <option value="welcome">Welcome</option>
+                <option value="deposit">Deposit</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <input type="text" name="description" class="form-control" placeholder="Description (optional)">
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-success w-100"><i class="fas fa-gift me-1"></i>Send Bonus</button>
+        </div>
+    </form>
+</div>
+
+<div class="row g-3">
+    <!-- Welcome Bonuses -->
+    <div class="col-lg-6">
+        <div class="table-container">
+            <h5><i class="fas fa-hand-wave me-2 text-primary"></i>Welcome Bonuses</h5>
+            <div class="table-responsive">
+                <table class="table table-hover table-sm">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                            <th>Claimed</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for b in welcome_bonuses %}
+                        <tr>
+                            <td><a href="{{ url_for('admin.user_detail', user_id=b.user_id) }}">{{ b.user.username }}</a></td>
+                            <td><strong>{{ currency_symbol }} {{ b.amount|int }}</strong></td>
+                            <td>
+                                {% if b.is_active and not b.is_expired %}
+                                <span class="badge bg-success">Active</span>
+                                {% elif b.is_expired %}
+                                <span class="badge bg-secondary">Expired</span>
+                                {% else %}
+                                <span class="badge bg-warning text-dark">Inactive</span>
+                                {% endif %}
+                            </td>
+                            <td><small>{{ b.claimed_at.strftime('%d %b %Y') }}</small></td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="4" class="text-center text-muted py-3">No welcome bonuses</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <!-- Promo Bonuses -->
+    <div class="col-lg-6">
+        <div class="table-container">
+            <h5><i class="fas fa-tag me-2 text-warning"></i>Promotional Bonuses</h5>
+            <div class="table-responsive">
+                <table class="table table-hover table-sm">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                            <th>Created</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for b in promo_bonuses %}
+                        <tr>
+                            <td><a href="{{ url_for('admin.user_detail', user_id=b.user_id) }}">{{ b.user.username }}</a></td>
+                            <td><strong>{{ currency_symbol }} {{ b.amount|int }}</strong></td>
+                            <td>
+                                {% if b.is_active and not b.is_expired %}
+                                <span class="badge bg-success">Active</span>
+                                {% elif b.is_expired %}
+                                <span class="badge bg-secondary">Expired</span>
+                                {% else %}
+                                <span class="badge bg-warning text-dark">Inactive</span>
+                                {% endif %}
+                            </td>
+                            <td><small>{{ b.created_at.strftime('%d %b %Y') }}</small></td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="4" class="text-center text-muted py-3">No promo bonuses</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

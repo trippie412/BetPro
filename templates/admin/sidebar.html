@@ -1,0 +1,70 @@
+<nav class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+        <i class="fas fa-trophy"></i>
+        <span>BetPro Admin</span>
+    </div>
+    <div class="sidebar-menu">
+        <div class="menu-header">Main</div>
+        <a href="{{ url_for('admin.index') }}" class="{{ 'active' if request.endpoint == 'admin.index' else '' }}">
+            <i class="fas fa-chart-pie"></i> Dashboard
+        </a>
+
+        <div class="menu-header">Management</div>
+        <a href="{{ url_for('admin.matches') }}" class="{{ 'active' if request.endpoint and request.endpoint.startswith('admin.match') else '' }}">
+            <i class="fas fa-futbol"></i> Matches
+        </a>
+        <a href="{{ url_for('admin.sports') }}" class="{{ 'active' if request.endpoint == 'admin.sports' else '' }}">
+            <i class="fas fa-list"></i> Sports
+        </a>
+        <a href="{{ url_for('admin.leagues') }}" class="{{ 'active' if request.endpoint == 'admin.leagues' else '' }}">
+            <i class="fas fa-tags"></i> Leagues
+        </a>
+
+        <div class="menu-header">Users & Finance</div>
+        <a href="{{ url_for('admin.users') }}" class="{{ 'active' if request.endpoint and 'user' in request.endpoint else '' }}">
+            <i class="fas fa-users"></i> Users
+            {% if pending_deposits is defined and pending_deposits > 0 %}
+            <span class="badge bg-danger rounded-pill">{{ pending_deposits }}</span>
+            {% endif %}
+        </a>
+        <a href="{{ url_for('admin.deposits') }}" class="{{ 'active' if request.endpoint == 'admin.deposits' else '' }}">
+            <i class="fas fa-arrow-down"></i> Deposits
+            {% if pending_deposits is defined and pending_deposits > 0 %}
+            <span class="badge bg-warning text-dark rounded-pill">{{ pending_deposits }}</span>
+            {% endif %}
+        </a>
+        <a href="{{ url_for('admin.withdrawals') }}" class="{{ 'active' if request.endpoint == 'admin.withdrawals' else '' }}">
+            <i class="fas fa-arrow-up"></i> Withdrawals
+            {% if pending_withdrawals is defined and pending_withdrawals > 0 %}
+            <span class="badge bg-warning text-dark rounded-pill">{{ pending_withdrawals }}</span>
+            {% endif %}
+        </a>
+        <a href="{{ url_for('admin.bets') }}" class="{{ 'active' if request.endpoint == 'admin.bets' else '' }}">
+            <i class="fas fa-receipt"></i> Bets
+        </a>
+
+        <div class="menu-header">Operations</div>
+        <a href="{{ url_for('admin.reports') }}" class="{{ 'active' if request.endpoint == 'admin.reports' else '' }}">
+            <i class="fas fa-file-alt"></i> Reports
+        </a>
+        <a href="{{ url_for('admin.announcements') }}" class="{{ 'active' if request.endpoint == 'admin.announcements' else '' }}">
+            <i class="fas fa-bullhorn"></i> Announcements
+        </a>
+        <a href="{{ url_for('admin.promotions') }}" class="{{ 'active' if request.endpoint == 'admin.promotions' else '' }}">
+            <i class="fas fa-gift"></i> Promotions
+        </a>
+
+        <div class="menu-header">System</div>
+        <a href="{{ url_for('admin.settings') }}"class="{{ 'active' if request.endpoint == 'admin.settings' else '' }}">
+            <i class="fas fa-cog"></i> Settings
+        </a>
+        <a href="{{ url_for('admin.activity_logs') }}" class="{{ 'active' if request.endpoint == 'admin.activity_logs' or request.endpoint == 'admin.logs' else '' }}">
+            <i class="fas fa-history"></i> Activity Logs
+        </a>
+
+        <div class="menu-header" style="margin-top: 12px;"></div>
+        <a href="{{ url_for('dashboard.index') }}" style="color: rgba(255,255,255,0.4); font-size: 0.8rem;">
+            <i class="fas fa-arrow-left"></i> Back to Site
+        </a>
+    </div>
+</nav>

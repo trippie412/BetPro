@@ -1,0 +1,252 @@
+{% extends "admin/layout.html" %}
+
+{% block title %}{{ user.username }} - User Details{% endblock %}
+
+{% block breadcrumb %}
+<i class="fas fa-users me-1"></i> <a href="{{ url_for('admin.users') }}">Users</a> / {{ user.username }}
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h4>
+        <img src="https://ui-avatars.com/api/?name={{ user.username }}&background=0d6efd&color=fff&size=32"
+             class="rounded-circle me-2" width="32" height="32" alt="">
+        {{ user.full_name or user.username }}
+        {% if user.is_suspended %}<span class="badge bg-danger ms-2">Suspended</span>{% endif %}
+        {% if user.is_admin %}<span class="badge bg-warning text-dark ms-2">Admin</span>{% endif %}
+    </h4>
+    <div>
+        <a href="{{ url_for('admin.edit_user', user_id=user.id) }}" class="btn btn-primary btn-sm">
+            <i class="fas fa-edit me-1"></i>Edit User
+        </a>
+        <form method="POST" action="{{ url_for('admin.toggle_suspend', user_id=user.id) }}" class="d-inline">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button class="btn btn-{{ 'success' if user.is_suspended else 'danger' }} btn-sm"
+                    onclick="return confirm('{{ 'Activate' if user.is_suspended else 'Suspend' }} this user?')">
+                <i class="fas fa-{{ 'check' if user.is_suspended else 'ban' }} me-1"></i>
+                {{ 'Activate' if user.is_suspended else 'Suspend' }}
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- User Info Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="card-body">
+                <div class="stat-label">Wallet Balance</div>
+                <div class="stat-value" style="font-size: 1.4rem;">{{ currency_symbol }} {{ user.get_wallet_balance()|int }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="card-body">
+                <div class="stat-label">Bonus Balance</div>
+                <div class="stat-value" style="font-size: 1.4rem;">{{ currency_symbol }} {{ user.get_bonus_balance()|int }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="card-body">
+                <div class="stat-label">Total Bets</div>
+                <div class="stat-value" style="font-size: 1.4rem;">{{ user.total_bets }}</div>
+                <div class="stat-change">Win rate: {{ user.win_rate }}%</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="card-body">
+                <div class="stat-label">Joined</div>
+                <div class="stat-value" style="font-size: 1.4rem;">{{ user.created_at.strftime('%d %b %Y') }}</div>
+                <div class="stat-change">{{ user.last_login.strftime('%d %b %Y %H:%M') if user.last_login else 'Never logged in' }}</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Balance Adjustment -->
+<div class="row g-3 mb-4">
+    <div class="col-md-6">
+        <div class="table-container">
+            <h5><i class="fas fa-wallet me-2 text-primary"></i>Adjust Balance</h5>
+            <form method="POST" action="{{ url_for('admin.adjust_user_balance', user_id=user.id) }}" class="row g-2">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="col-md-4">
+                    <select name="action" class="form-select form-select-sm">
+                        <option value="add">Add Funds</option>
+                        <option value="deduct">Deduct Funds</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <input type="number" name="amount" class="form-control form-control-sm" placeholder="Amount" min="1" step="0.01" required>
+                </div>
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-sm btn-primary w-100"><i class="fas fa-check me-1"></i>Apply</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="table-container">
+            <h5><i class="fas fa-key me-2 text-warning"></i>Reset Password</h5>
+            <form method="POST" action="{{ url_for('admin.reset_user_password', user_id=user.id) }}" class="row g-2"
+                  onsubmit="return confirm('Reset password for {{ user.username }}?')">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="col-md-8">
+                    <input type="text" name="new_password" class="form-control form-control-sm" placeholder="New password (default: Password123!)">
+                </div>
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-sm btn-warning w-100"><i class="fas fa-redo me-1"></i>Reset</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- User Details -->
+<div class="row g-3 mb-4">
+    <div class="col-md-6">
+        <div class="table-container">
+            <h5><i class="fas fa-info-circle me-2 text-info"></i>User Information</h5>
+            <table class="table table-sm">
+                <tr><th style="width: 140px;">Username</th><td>{{ user.username }}</td></tr>
+                <tr><th>Full Name</th><td>{{ user.full_name or '-' }}</td></tr>
+                <tr><th>Email</th><td>{{ user.email }}</td></tr>
+                <tr><th>Phone</th><td>{{ user.phone or '-' }}</td></tr>
+                <tr><th>Country</th><td>{{ user.country or '-' }}</td></tr>
+                <tr><th>Email Verified</th><td>{{ 'Yes' if user.email_verified else 'No' }}</td></tr>
+                <tr><th>Phone Verified</th><td>{{ 'Yes' if user.phone_verified else 'No' }}</td></tr>
+                <tr><th>Admin</th><td>{{ 'Yes' if user.is_admin else 'No' }}</td></tr>
+                <tr><th>Suspended</th><td>{{ 'Yes' if user.is_suspended else 'No' }}</td></tr>
+            </table>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="table-container">
+            <h5><i class="fas fa-chart-simple me-2 text-success"></i>Betting Stats</h5>
+            <table class="table table-sm">
+                <tr><th style="width: 160px;">Total Bets</th><td>{{ user.total_bets }}</td></tr>
+                <tr><th>Won</th><td>{{ user.total_won_bets }}</td></tr>
+                <tr><th>Lost</th><td>{{ user.total_lost_bets }}</td></tr>
+                <tr><th>Win Rate</th><td>{{ user.win_rate }}%</td></tr>
+                <tr><th>Total Deposits</th><td>{{ currency_symbol }} {{ user.total_deposits|int }}</td></tr>
+                <tr><th>Total Withdrawals</th><td>{{ currency_symbol }} {{ user.total_withdrawals|int }}</td></tr>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Bets -->
+<div class="table-container mb-4">
+    <h5><i class="fas fa-receipt me-2 text-warning"></i>Recent Bets</h5>
+    <div class="table-responsive">
+        <table class="table table-hover table-sm">
+            <thead>
+                <tr>
+                    <th>Reference</th>
+                    <th>Stake</th>
+                    <th>Odds</th>
+                    <th>Potential</th>
+                    <th>Winnings</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for bet in bets %}
+                <tr>
+                    <td><small><code>{{ bet.bet_reference[:12] }}</code></small></td>
+                    <td>{{ currency_symbol }} {{ bet.stake|int }}</td>
+                    <td>{{ bet.total_odds }}</td>
+                    <td>{{ currency_symbol }} {{ bet.potential_winnings|int }}</td>
+                    <td>{{ currency_symbol }} {{ (bet.winnings or 0)|int }}</td>
+                    <td>
+                        {% if bet.status == 'pending' %}<span class="badge bg-warning text-dark">Pending</span>
+                        {% elif bet.status == 'won' %}<span class="badge bg-success">Won</span>
+                        {% elif bet.status == 'lost' %}<span class="badge bg-danger">Lost</span>
+                        {% else %}<span class="badge bg-secondary">{{ bet.status }}</span>{% endif %}
+                    </td>
+                    <td><small>{{ bet.created_at.strftime('%d %b %Y %H:%M') }}</small></td>
+                </tr>
+                {% else %}
+                <tr><td colspan="7" class="text-center text-muted">No bets yet</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Recent Deposits -->
+<div class="table-container mb-4">
+    <h5><i class="fas fa-arrow-down me-2 text-success"></i>Recent Deposits</h5>
+    <div class="table-responsive">
+        <table class="table table-hover table-sm">
+            <thead>
+                <tr>
+                    <th>Reference</th>
+                    <th>Amount</th>
+                    <th>Method</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for dep in deposits %}
+                <tr>
+                    <td><small><code>{{ dep.reference[:12] }}</code></small></td>
+                    <td>{{ currency_symbol }} {{ dep.amount|int }}</td>
+                    <td><small>{{ dep.payment_method or '-' }}</small></td>
+                    <td>
+                        {% if dep.status == 'pending' %}<span class="badge bg-warning text-dark">Pending</span>
+                        {% elif dep.status == 'approved' %}<span class="badge bg-success">Approved</span>
+                        {% else %}<span class="badge bg-danger">Rejected</span>{% endif %}
+                    </td>
+                    <td><small>{{ dep.created_at.strftime('%d %b %Y %H:%M') }}</small></td>
+                </tr>
+                {% else %}
+                <tr><td colspan="5" class="text-center text-muted">No deposits</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Recent Withdrawals -->
+<div class="table-container">
+    <h5><i class="fas fa-arrow-up me-2 text-danger"></i>Recent Withdrawals</h5>
+    <div class="table-responsive">
+        <table class="table table-hover table-sm">
+            <thead>
+                <tr>
+                    <th>Reference</th>
+                    <th>Amount</th>
+                    <th>Method</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for wd in withdrawals %}
+                <tr>
+                    <td><small><code>{{ wd.reference[:12] }}</code></small></td>
+                    <td>{{ currency_symbol }} {{ wd.amount|int }}</td>
+                    <td><small>{{ wd.payment_method or '-' }}</small></td>
+                    <td>
+                        {% if wd.status == 'pending' %}<span class="badge bg-warning text-dark">Pending</span>
+                        {% elif wd.status == 'approved' %}<span class="badge bg-success">Approved</span>
+                        {% else %}<span class="badge bg-danger">Rejected</span>{% endif %}
+                    </td>
+                    <td><small>{{ wd.created_at.strftime('%d %b %Y %H:%M') }}</small></td>
+                </tr>
+                {% else %}
+                <tr><td colspan="5" class="text-center text-muted">No withdrawals</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
