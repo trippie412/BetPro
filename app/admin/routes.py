@@ -1041,19 +1041,36 @@ def toggle_announcement(announcement_id):
 @admin_required
 def promotions():
     """Promotions management page."""
-    welcome_bonuses = Bonus.query.filter_by(bonus_type='welcome').order_by(Bonus.created_at.desc()).limit(20).all()
-    promo_bonuses = Bonus.query.filter_by(bonus_type='promo').order_by(Bonus.created_at.desc()).limit(20).all()
 
-    active_bonuses_count = Bonus.query.filter_by(is_active=True, is_expired=False).count()
+    welcome_bonuses = Bonus.query.filter_by(
+        bonus_type='welcome'
+    ).order_by(Bonus.created_at.desc()).limit(20).all()
+
+    promo_bonuses = Bonus.query.filter_by(
+        bonus_type='promo'
+    ).order_by(Bonus.created_at.desc()).limit(20).all()
+
+    active_bonuses_count = Bonus.query.filter_by(
+        is_active=True,
+        is_expired=False
+    ).count()
+
     total_bonus_amount = db.session.query(
         func.coalesce(func.sum(Bonus.amount), 0)
-    ).filter(Bonus.is_active == True).scalar()
+    ).filter(
+        Bonus.is_active == True
+    ).scalar()
 
-    return render_template('admin/promotions.html',
-                           welcome_bonuses=welcome_bonuses,
-                           promo_bonuses=promo_bonuses,
-                           active_bonuses_count=active_bonuses_count,
-                           total_bonus_amount=float(total_bonus_amount or 0))
+    users = User.query.order_by(User.username).all()
+
+    return render_template(
+        'admin/promotions.html',
+        welcome_bonuses=welcome_bonuses,
+        promo_bonuses=promo_bonuses,
+        active_bonuses_count=active_bonuses_count,
+        total_bonus_amount=float(total_bonus_amount or 0),
+        users=users
+    )
 
 
 @admin_bp.route('/promotions/bonus/send', methods=['POST'])
