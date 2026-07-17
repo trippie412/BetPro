@@ -561,6 +561,12 @@ class LiveDataService:
     def sync_matches_to_db():
         fixtures = LiveDataService.fetch_upcoming_matches()
 
+        print("=" * 60)
+        print(f"Fetched {len(fixtures)} fixtures")
+        if fixtures:
+             print(fixtures[0])
+        print("=" * 60)
+
         imported = 0
 
         for item in fixtures:
