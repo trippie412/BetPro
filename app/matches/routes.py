@@ -47,9 +47,14 @@ def index():
             leagues[league_name] = []
         leagues[league_name].append(match)
 
+    print("MATCHES FOUND:", len(matches))
+
+    for m in matches[:5]:
+        print(m.home_team, m.away_team, m.status)
+
     return render_template('matches/index.html', matches=matches,
-                         leagues=leagues, sports=sports,
-                         current_sport=sport_slug, current_status=status)
+                           leagues=leagues, sports=sports,
+                           current_sport=sport_slug, current_status=status)
 
 
 @matches_bp.route('/<int:match_id>')
