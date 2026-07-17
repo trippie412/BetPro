@@ -549,27 +549,47 @@ def create_match():
     form.league_id.choices = [(l.id, l.name) for l in League.query.all()]
 
     if form.validate_on_submit():
-        match = Match(
-            sport_id=form.sport_id.data, league_id=form.league_id.data,
-            home_team=form.home_team.data, away_team=form.away_team.data,
-            match_date=form.match_date.data, status=form.status.data,
-            is_featured=form.is_featured.data, is_live=form.is_live.data
-        )
-        db.session.add(match)
-        db.session.flush()
+        try:
+            match = Match(
+                sport_id=form.sport_id.data,
+                league_id=form.league_id.data,
+                home_team=form.home_team.data,
+                away_team=form.away_team.data,
+                match_date=form.match_date.data,
+                status=form.status.data,
+                is_featured=form.is_featured.data,
+                is_live=form.is_live.data
+            )
 
-        # Create default odds
-        odds = Odds(match_id=match.id, home_win=1.50, draw=3.00, away_win=2.50)
-        db.session.add(odds)
-        db.session.commit()
+            db.session.add(match)
+            db.session.flush()
 
-        AdminLogService.log(current_user.id, 'Match created', None,
-                            f'Match: {match.home_team} vs {match.away_team}',
-                            request.remote_addr)
-        flash('Match created successfully.', 'success')
-        return redirect(url_for('admin.matches'))
+            odds = Odds(
+                match_id=match.id,
+                home_win=1.50,
+                draw=3.00,
+                away_win=2.50
+            )
 
-    return render_template('admin/match_form.html', form=form, edit=False)
+            db.session.add(odds)
+            db.session.commit()
+
+            flash("Match created successfully.", "success")
+            return redirect(url_for("admin.matches"))
+
+        except Exception as e:
+            db.session.rollback()
+            print(e)
+            flash(str(e), "danger")
+
+    else:
+        print(form.errors)
+
+    return render_template(
+        "admin/match_form.html",
+        form=form,
+        edit=False
+    )
 
 
 @admin_bp.route('/matches/<int:match_id>/edit', methods=['GET', 'POST'])
