@@ -82,3 +82,14 @@ def health():
         'timestamp': datetime.now(timezone.utc).isoformat(),
         'version': '1.0.0'
     })
+    
+from app.services import LiveDataService
+
+@api_bp.route("/sync-matches")
+def sync_matches():
+    imported = LiveDataService.sync_matches_to_db()
+
+    return jsonify({
+        "success": True,
+        "imported": imported
+    })
