@@ -42,4 +42,4 @@ logs/
 Thumbs.db
 
 # Migration
-migrations/versions/
+migrations/versions/flask_session/

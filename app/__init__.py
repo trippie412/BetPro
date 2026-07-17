@@ -1,5 +1,9 @@
 """Initialize the Flask application using the application factory pattern."""
 import os
+from dotenv import load_dotenv
+# Load variables from .env
+load_dotenv()
+
 from flask import Flask, redirect, url_for
 from app.extensions import db, login_manager, migrate, csrf, mail, limiter, sess
 from config import config

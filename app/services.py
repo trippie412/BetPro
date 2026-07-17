@@ -520,61 +520,128 @@ class LiveDataService:
 
     @staticmethod
     def fetch_live_matches():
-        return [m for m in LiveDataService.SAMPLE_MATCHES if m.get('is_live')]
+        headers = {
+            "x-apisports-key": current_app.config["API_FOOTBALL_KEY"]
+        }
+
+        response = requests.get(
+            current_app.config["API_FOOTBALL_URL"] + "/fixtures",
+            headers=headers,
+            params={"live": "all"},
+            timeout=30
+        )
+
+        response.raise_for_status()
+
+        return response.json()["response"]
 
     @staticmethod
     def fetch_upcoming_matches(sport=None, league=None):
-        matches = LiveDataService.SAMPLE_MATCHES
-        if sport:
-            matches = [m for m in matches if m['sport'].lower() == sport.lower()]
-        if league:
-            matches = [m for m in matches if league.lower() in m['league'].lower()]
-        return matches
+        headers = {
+            "x-apisports-key": current_app.config["API_FOOTBALL_KEY"]
+        }
+
+        params = {
+            "date": datetime.now().strftime("%Y-%m-%d")
+        }
+
+        response = requests.get(
+            current_app.config["API_FOOTBALL_URL"] + "/fixtures",
+            headers=headers,
+            params=params,
+            timeout=30
+        )
+
+        response.raise_for_status()
+
+        return response.json()["response"]
 
     @staticmethod
-    def sync_matches_to_db():
-        matches = LiveDataService.SAMPLE_MATCHES
-        for m_data in matches:
-            sport = Sport.query.filter_by(name=m_data['sport']).first()
-            if not sport:
-                sport = Sport(name=m_data['sport'], slug=m_data['sport'].lower().replace(' ', '_'))
-                db.session.add(sport)
-                db.session.flush()
+def sync_matches_to_db():
+    fixtures = LiveDataService.fetch_upcoming_matches()
 
-            league = League.query.filter_by(name=m_data['league'], sport_id=sport.id).first()
-            if not league:
-                league = League(name=m_data['league'], slug=m_data['league'].lower().replace(' ', '_'), sport_id=sport.id)
-                db.session.add(league)
-                db.session.flush()
+    imported = 0
 
-            match = Match.query.filter_by(
-                home_team=m_data['home_team'],
-                away_team=m_data['away_team'],
+    for item in fixtures:
+
+        sport_name = "Football"
+
+        league_name = item["league"]["name"]
+
+        home_team = item["teams"]["home"]["name"]
+        away_team = item["teams"]["away"]["name"]
+
+        match_date = datetime.fromisoformat(
+            item["fixture"]["date"].replace("Z", "+00:00")
+        )
+
+        is_live = item["fixture"]["status"]["short"] == "LIVE"
+
+        # ------------------------
+        # Sport
+        # ------------------------
+
+        sport = Sport.query.filter_by(name=sport_name).first()
+
+        if not sport:
+            sport = Sport(
+                name=sport_name,
+                slug="football"
+            )
+            db.session.add(sport)
+            db.session.flush()
+
+        # ------------------------
+        # League
+        # ------------------------
+
+        league = League.query.filter_by(
+            name=league_name,
+            sport_id=sport.id
+        ).first()
+
+        if not league:
+            league = League(
+                name=league_name,
+                slug=league_name.lower().replace(" ", "-"),
                 sport_id=sport.id
-            ).first()
+            )
 
-            if not match:
-                match_date = datetime.strptime(m_data['match_date'], '%Y-%m-%d %H:%M')
-                match = Match(
-                    sport_id=sport.id, league_id=league.id,
-                    home_team=m_data['home_team'], away_team=m_data['away_team'],
-                    match_date=match_date, status=MATCH_SCHEDULED,
-                    is_featured=m_data.get('is_featured', False),
-                    is_live=m_data.get('is_live', False)
-                )
-                db.session.add(match)
-                db.session.flush()
+            db.session.add(league)
+            db.session.flush()
 
-                odds = Odds(
-                    match_id=match.id,
-                    home_win=m_data['home_win'],
-                    draw=m_data.get('draw'),
-                    away_win=m_data['away_win']
-                )
-                db.session.add(odds)
+        # ------------------------
+        # Existing Match?
+        # ------------------------
 
-        db.session.commit()
-        return len(matches)
+        existing = Match.query.filter_by(
+            home_team=home_team,
+            away_team=away_team,
+            match_date=match_date
+        ).first()
+
+        if existing:
+            continue
+
+        match = Match(
+            sport_id=sport.id,
+            league_id=league.id,
+            home_team=home_team,
+            away_team=away_team,
+            match_date=match_date,
+            status=MATCH_SCHEDULED,
+            is_live=is_live,
+            is_featured=False
+        )
+
+        db.session.add(match)
+        db.session.flush()
+
+        imported += 1
+
+    db.session.commit()
+
+    return imported
 
 
 # =============================================================================

@@ -59,6 +59,15 @@ class Config:
     # Currency
     CURRENCY_SYMBOL = 'KES'
     CURRENCY_CODE = 'KES'
+    
+    # =========================================================================
+    # API-FOOTBALL Configuration
+    # =========================================================================
+    API_FOOTBALL_KEY = os.environ.get("API_FOOTBALL_KEY")
+    API_FOOTBALL_URL = os.environ.get(
+        "API_FOOTBALL_URL",
+        "https://v3.football.api-sports.io"
+    )
 
     # =========================================================================
     # M-Pesa Daraja API Configuration
