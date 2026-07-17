@@ -1,4 +1,5 @@
 """Business logic services layer."""
+import random
 import base64
 import json
 import logging
@@ -621,23 +622,39 @@ class LiveDataService:
             ).first()
 
             if existing:
-                continue
+                match = existing
+            else:
+                match = Match(
+                    sport_id=sport.id,
+                    league_id=league.id,
+                    home_team=home_team,
+                    away_team=away_team,
+                    match_date=match_date,
+                    status=MATCH_SCHEDULED,
+                    is_live=is_live,
+                    is_featured=False
+                )
+                db.session.add(match)
+                db.session.flush()
+                imported += 1
 
-            match = Match(
-                sport_id=sport.id,
-                league_id=league.id,
-                home_team=home_team,
-                away_team=away_team,
-                match_date=match_date,
-                status=MATCH_SCHEDULED,
-                is_live=is_live,
-                is_featured=False
-            )
-
-            db.session.add(match)
-            db.session.flush()
-
-            imported += 1
+            # Create odds if they don't already exist
+            if not match.odds:
+                odds = Odds(
+                    match_id=match.id,
+                    home_win=round(random.uniform(1.50, 3.50), 2),
+                    draw=round(random.uniform(2.80, 4.20), 2),
+                    away_win=round(random.uniform(1.50, 3.50), 2),
+                    over_under_line=2.5,
+                    over=1.90,
+                    under=1.90,
+                    btts_yes=1.85,
+                    btts_no=1.95,
+                    double_chance_1x=1.30,
+                    double_chance_12=1.25,
+                    double_chance_2x=1.45,
+                )
+                db.session.add(odds)
 
         db.session.commit()
 
