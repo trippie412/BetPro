@@ -757,6 +757,14 @@ class MpesaService:
     def get_access_token() -> str:
         consumer_key, consumer_secret, _, _ = MpesaService._get_credentials()
         base_url = MpesaService._get_base_url()
+        print("\n" + "=" * 60)
+        print("GETTING MPESA ACCESS TOKEN")
+        print("Environment:", current_app.config.get("MPESA_ENV"))
+        print("Base URL:", base_url)
+        print("Consumer Key exists:", bool(consumer_key))
+        print("Consumer Secret exists:", bool(consumer_secret))
+        print("Consumer Key (first 10 chars):", consumer_key[:10] if consumer_key else "None")
+        print("=" * 60)
         auth_string = f'{consumer_key}:{consumer_secret}'
         encoded_auth = base64.b64encode(auth_string.encode()).decode()
         headers = {
