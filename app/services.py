@@ -339,19 +339,23 @@ class AuditService:
 # =============================================================================
 
 class AdminLogService:
-    """Handle admin activity logging."""
-
     @staticmethod
     def log(admin_id, action, target_user_id=None, details=None, ip_address=None):
-        log = AdminLog(
-            admin_id=admin_id, action=action,
-            target_user_id=target_user_id, details=details,
-            ip_address=ip_address
-        )
-        db.session.add(log)
-        db.session.commit()
-        return log
+        try:
+            log = AdminLog(
+                admin_id=admin_id,
+                action=action,
+                target_user_id=target_user_id,
+                details=details,
+                ip_address=ip_address
+            )
+            db.session.add(log)
+            db.session.commit()
+            return log
 
+        except Exception:
+            db.session.rollback()
+            raise
 
 # =============================================================================
 # PAYMENT SERVICE
