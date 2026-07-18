@@ -43,3 +43,4 @@ Thumbs.db
 
 # Migration
 migrations/versions/flask_session/
+flask_session/

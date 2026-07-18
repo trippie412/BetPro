@@ -7,14 +7,15 @@ from app import db
 from app.models import (User, Wallet, Deposit, Withdrawal, Bet, BetSelection,
                         Match, Odds, Sport, League, Notification, Bonus,
                         Announcement, AuditLog, AdminLog, WalletTransaction,
-                        SystemSettings)
+                        Review, SystemSettings)
 from app.admin import admin_bp
 from app.admin.forms import (UserEditForm, MatchForm, OddsForm, SportForm,
                               LeagueForm, AnnouncementForm, SystemSettingsForm,
-                              AdminDepositForm, AdminWithdrawalForm)
+                              AdminDepositForm, ReviewForm, AdminWithdrawalForm)
 from app.decorators import admin_required
 from app.constants import *
 from app.services import WalletService, NotificationService, AdminLogService
+from app.admin.review_generator import generate_review
 
 
 # =============================================================================
@@ -60,21 +61,17 @@ def index():
     today_deposits = db.session.query(db.func.coalesce(db.func.sum(Deposit.amount), 0))\
         .filter(Deposit.status == REQUEST_APPROVED, Deposit.created_at >= today_start).scalar()
 
-    # Recent bets
     recent_bets = Bet.query.order_by(Bet.created_at.desc()).limit(5).all()
 
-    # Recent transactions
     recent_transactions = WalletTransaction.query.order_by(
         WalletTransaction.id.desc()
     ).limit(10).all()
 
-    # Bets by status for chart
     bets_by_status = dict(
         db.session.query(Bet.status, func.count(Bet.id))
         .group_by(Bet.status).all()
     )
 
-    # Revenue data for chart (last 30 days)
     thirty_days_ago = datetime.now(timezone.utc) - timedelta(days=30)
     revenue_data = db.session.query(
         func.date(Deposit.created_at).label('date'),
@@ -84,7 +81,6 @@ def index():
         Deposit.created_at >= thirty_days_ago
     ).group_by(func.date(Deposit.created_at)).order_by(func.date(Deposit.created_at)).all()
 
-    # Sport summary
     sport_summary = db.session.query(
         Sport.name,
         func.count(Match.id).label('match_count')
@@ -297,7 +293,6 @@ def approve_deposit(deposit_id):
     WalletService.add_funds(deposit.user, deposit.amount,
                             f'Deposit approved by admin. Ref: {deposit.receipt_number}')
 
-    # Check welcome bonus
     from app.services import BonusService
     BonusService.check_welcome_bonus(deposit.user, deposit.amount)
 
@@ -581,7 +576,6 @@ def create_match():
             db.session.rollback()
             print(e)
             flash(str(e), "danger")
-
     else:
         print(form.errors)
 
@@ -943,6 +937,104 @@ def bets():
 
 
 # =============================================================================
+# COMMUNITY REVIEWS
+# =============================================================================
+
+@admin_bp.route('/reviews')
+@login_required
+@admin_required
+def reviews():
+    """List all reviews (from both Review and CommunityReview models)."""
+    reviews = Review.query.order_by(Review.created_at.desc()).all()
+    return render_template('admin/reviews.html', reviews=reviews)
+
+
+@admin_bp.route("/reviews/generate", methods=["POST"])
+@login_required
+@admin_required
+def generate_review_ai():
+
+    data = generate_review()
+
+    review = Review(
+        phone_number=data["phone"],
+        message=data["review"],
+        rating=data["rating"],
+        is_visible=True,
+        created_by=current_user.id
+    )
+
+    db.session.add(review)
+    db.session.commit()
+
+    flash("AI review generated successfully.", "success")
+    return redirect(url_for("admin.reviews"))
+
+@admin_bp.route('/reviews/create', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def create_review():
+    """Create a new review."""
+    form = ReviewForm()
+
+    if form.validate_on_submit():
+        review = Review(
+            phone_number=form.phone_number.data,
+            message=form.message.data,
+            rating=form.rating.data,
+            is_visible=form.is_visible.data,
+            created_by=current_user.id
+        )
+
+        db.session.add(review)
+        db.session.commit()
+
+        flash('Review created successfully.', 'success')
+        return redirect(url_for('admin.reviews'))
+
+    return render_template(
+        'admin/review_form.html',
+        form=form,
+        title='Create Review'
+    )
+
+
+@admin_bp.route('/reviews/<int:id>/edit', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def edit_review(id):
+    """Edit an existing review."""
+    review = Review.query.get_or_404(id)
+    form = ReviewForm(obj=review)
+
+    if form.validate_on_submit():
+        form.populate_obj(review)
+        db.session.commit()
+
+        flash('Review updated successfully.', 'success')
+        return redirect(url_for('admin.reviews'))
+
+    return render_template(
+        'admin/review_form.html',
+        form=form,
+        title='Edit Review'
+    )
+
+
+@admin_bp.route('/reviews/<int:id>/delete', methods=['POST'])
+@login_required
+@admin_required
+def delete_review(id):
+    """Delete a review."""
+    review = Review.query.get_or_404(id)
+    db.session.delete(review)
+    db.session.commit()
+
+    flash('Review deleted.', 'success')
+    return redirect(url_for('admin.reviews'))
+
+
+# =============================================================================
 # ANNOUNCEMENTS
 # =============================================================================
 
@@ -1041,7 +1133,6 @@ def toggle_announcement(announcement_id):
 @admin_required
 def promotions():
     """Promotions management page."""
-
     welcome_bonuses = Bonus.query.filter_by(
         bonus_type='welcome'
     ).order_by(Bonus.created_at.desc()).limit(20).all()
@@ -1224,7 +1315,6 @@ def activity_logs():
 
     admins = User.query.filter(User.is_admin == True).all()
 
-    # Get distinct action types for filter dropdown
     actions = db.session.query(AdminLog.action).distinct().order_by(AdminLog.action).all()
     actions = [a[0] for a in actions]
 
@@ -1321,7 +1411,6 @@ def settings():
             else:
                 db.session.add(SystemSettings(key=key, value=str(value)))
 
-        # Handle logo upload
         if hasattr(form, 'site_logo') and form.site_logo.data:
             from werkzeug.utils import secure_filename
             import os
@@ -1342,7 +1431,6 @@ def settings():
         flash('Settings updated successfully.', 'success')
         return redirect(url_for('admin.settings'))
 
-    # Load current values into form
     all_settings = {s.key: s.value for s in SystemSettings.query.all()}
     for key in ['site_name', 'currency', 'currency_symbol', 'minimum_deposit',
                 'minimum_withdrawal', 'minimum_stake', 'maximum_stake',

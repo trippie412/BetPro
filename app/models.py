@@ -462,6 +462,35 @@ class Announcement(db.Model):
 
     def __repr__(self):
         return f'<Announcement {self.title}>'
+    
+class Review(db.Model):
+    __tablename__ = "reviews"
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    phone_number = db.Column(db.String(20), nullable=False)
+
+    message = db.Column(db.Text, nullable=False)
+
+    rating = db.Column(db.Integer, default=5)
+
+    is_visible = db.Column(db.Boolean, default=True)
+
+    created_by = db.Column(db.Integer, db.ForeignKey("users.id"))
+
+    created_at = db.Column(db.DateTime, default=kenya_time)
+
+    creator = db.relationship("User", foreign_keys=[created_by])
+
+    @property
+    def masked_phone(self):
+        phone = self.phone_number or ""
+        if len(phone) >= 10:
+            return phone[:4] + "*****" + phone[-2:]
+        return phone
+
+    def __repr__(self):
+        return f"<Review {self.id}>"
 
 
 class AuditLog(db.Model):

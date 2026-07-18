@@ -53,6 +53,12 @@
         <a href="{{ url_for('admin.promotions') }}" class="{{ 'active' if request.endpoint == 'admin.promotions' else '' }}">
             <i class="fas fa-gift"></i> Promotions
         </a>
+        <li>
+    <a href="{{ url_for('admin.reviews') }}">
+        <i class="fas fa-comments"></i>
+        Community Reviews
+     </a>
+     </li>
 
         <div class="menu-header">System</div>
         <a href="{{ url_for('admin.settings') }}"class="{{ 'active' if request.endpoint == 'admin.settings' else '' }}">

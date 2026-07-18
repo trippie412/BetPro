@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 from flask_wtf import FlaskForm
 from wtforms import (StringField, PasswordField, FloatField, IntegerField,
                      TextAreaField, SelectField, BooleanField, DateTimeField,
-                     FileField, HiddenField)
+                     FileField,SubmitField, HiddenField)
 from wtforms.validators import DataRequired, Optional, NumberRange, Length, Email
 
 
@@ -75,6 +75,27 @@ class AnnouncementForm(FlaskForm):
         ('urgent', 'Urgent'),
     ], default='normal')
     is_active = BooleanField('Active', default=True)
+    
+class ReviewForm(FlaskForm):
+    phone_number = StringField("Phone Number", validators=[DataRequired()])
+
+    message = TextAreaField("Review", validators=[DataRequired()])
+
+    rating = SelectField(
+        "Rating",
+        choices=[
+            (5, "★★★★★"),
+            (4, "★★★★☆"),
+            (3, "★★★☆☆"),
+            (2, "★★☆☆☆"),
+            (1, "★☆☆☆☆")
+        ],
+        coerce=int
+    )
+
+    is_visible = BooleanField("Visible", default=True)
+
+    submit = SubmitField("Save Review")
 
 
 class SystemSettingsForm(FlaskForm):

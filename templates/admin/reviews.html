@@ -1,0 +1,123 @@
+{% extends "admin/layout.html" %}
+
+{% block title %}Community Reviews{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3>Community Reviews</h3>
+
+        <div class="d-flex gap-2">
+
+    <form action="{{ url_for('admin.generate_review_ai') }}"
+      method="POST"
+      style="display:inline;">
+
+    <input type="hidden"
+           name="csrf_token"
+           value="{{ csrf_token() }}">
+
+    <button type="submit" class="btn btn-success">
+        ✨ Generate AI Review
+    </button>
+
+</form>
+
+</div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+
+            <table class="table table-bordered table-hover">
+
+                <thead>
+
+                <tr>
+                    <th>ID</th>
+                    <th>Phone</th>
+                    <th>Rating</th>
+                    <th>Review</th>
+                    <th>Visible</th>
+                    <th>Created</th>
+                    <th>Actions</th>
+                </tr>
+
+                </thead>
+
+                <tbody>
+
+                {% for review in reviews %}
+
+                <tr>
+
+                    <td>{{ review.id }}</td>
+
+                    <td>{{ review.masked_phone }}</td>
+
+                    <td>
+
+                        {% for i in range(review.rating) %}
+                            ⭐
+                        {% endfor %}
+
+                    </td>
+
+                    <td>{{ review.message }}</td>
+
+                    <td>
+
+                        {% if review.is_visible %}
+                            <span class="badge bg-success">Yes</span>
+                        {% else %}
+                            <span class="badge bg-danger">No</span>
+                        {% endif %}
+
+                    </td>
+
+                    <td>{{ review.created_at.strftime("%d %b %Y") }}</td>
+
+                    <td>
+
+                        <a href="{{ url_for('admin.edit_review', id=review.id) }}"
+                           class="btn btn-warning btn-sm">
+
+                            Edit
+
+                        </a>
+
+                        <form method="POST"
+      action="{{ url_for('admin.delete_review', id=review.id) }}"
+      style="display:inline;">
+
+    <input type="hidden"
+           name="csrf_token"
+           value="{{ csrf_token() }}">
+
+    <button type="submit"
+            class="btn btn-danger btn-sm"
+            onclick="return confirm('Delete this review?')">
+
+        Delete
+
+    </button>
+
+</form>
+                        
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

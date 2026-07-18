@@ -2,7 +2,7 @@
 from flask import render_template, redirect, url_for, flash, request, jsonify
 from flask_login import login_required, current_user
 from app import db
-from app.models import Bet, Notification, Wallet, Match, Sport
+from app.models import Bet, Notification, Wallet, Review, Match, Sport
 from app.dashboard import dashboard_bp
 from app.decorators import suspended_check
 from app.constants import *
@@ -76,6 +76,14 @@ def index():
     ).order_by(
         Notification.created_at.desc()
     ).limit(5).all()
+    
+    community_reviews = (
+       Review.query
+       .filter_by(is_visible=True)
+       .order_by(Review.created_at.desc())
+       .limit(8)
+       .all()
+    )
 
     return render_template(
         "dashboard/index.html",
@@ -92,7 +100,8 @@ def index():
         live_matches=live_matches,
         chart_labels=chart_labels,
         chart_deposits=chart_deposits,
-        chart_bets=chart_bets,)
+        chart_bets=chart_bets,
+        community_reviews=community_reviews,)
 
 
 @dashboard_bp.route('/notifications')
