@@ -380,7 +380,7 @@ class PaymentService:
         print(f"   User object: {user}")
         # =====================================
 
-        phone = getattr(user, 'phone', None) or getattr(user, 'phone_number', None)
+        phone = deposit.phone_number or getattr(user, "phone", None) or getattr(user, "phone_number", None)
 
         # ===== DEBUG: Print phone number =====
         print(f"📞 Phone from DB: '{phone}'")

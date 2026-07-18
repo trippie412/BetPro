@@ -56,7 +56,12 @@ def deposit():
         db.session.commit()
 
         # Process payment via M-Pesa
-        result = PaymentService.process_deposit(deposit)
+        try:
+            result = PaymentService.process_deposit(deposit)
+        except Exception as e:
+            current_app.logger.exception(e)
+            flash(f"Deposit Error: {e}", "danger")
+            return redirect(url_for("wallet.deposit"))
 
         if result.get("success"):
             # STK Push sent successfully.
