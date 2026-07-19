@@ -55,35 +55,49 @@ def deposit():
         db.session.add(deposit)
         db.session.commit()
 
-        # Process payment via M-Pesa
+        # Determine payment provider from form data or default to pesapal
+        provider = getattr(form, 'payment_provider', None)
+        if provider and provider.data:
+            selected_provider = provider.data
+        else:
+            selected_provider = form.payment_method.data
+
+        # Process payment via the selected provider
         try:
-            result = PaymentService.process_deposit(deposit)
+            result = PaymentService.process_deposit(
+                deposit,
+                provider=selected_provider
+            )
         except Exception as e:
             current_app.logger.exception(e)
+            deposit.status = REQUEST_FAILED
+            db.session.commit()
             flash(f"Deposit Error: {e}", "danger")
             return redirect(url_for("wallet.deposit"))
 
         if result.get("success"):
-            # STK Push sent successfully.
-            # DO NOT credit the wallet here — wait for callback.
-            deposit.status = REQUEST_PENDING
-            deposit.checkout_request_id = result.get('checkout_request_id')
-            db.session.commit()
+            if result.get("redirect_url"):
+                flash(
+                    "Redirecting you to complete your payment...",
+                    "success"
+                )
+                return redirect(result["redirect_url"])
+            else:
+                flash(
+                    result.get("message", "Payment initiated successfully."),
+                    "success"
+                )
+                return redirect(url_for("wallet.index"))
 
-            flash(
-                "STK Push sent successfully. Please check your phone and enter your M-Pesa PIN to complete the payment.",
-                "info"
-            )
-        else:
-            deposit.status = REQUEST_FAILED
-            db.session.commit()
+        deposit.status = REQUEST_FAILED
+        db.session.commit()
 
-            flash(
-                result.get('message', 'Failed to send STK Push. Please try again.'),
-                "danger"
-            )
+        flash(
+            result.get("message", "Unable to initiate payment."),
+            "danger"
+        )
 
-        return redirect(url_for("wallet.index"))
+        return redirect(url_for("wallet.deposit"))
 
     return render_template('wallet/deposit.html', form=form)
 

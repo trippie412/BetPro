@@ -68,6 +68,10 @@ class Config:
         "API_FOOTBALL_URL",
         "https://v3.football.api-sports.io"
     )
+    
+    PESAPAL_BASE_URL = os.getenv("PESAPAL_BASE_URL")
+    PESAPAL_CONSUMER_KEY = os.getenv("PESAPAL_CONSUMER_KEY")
+    PESAPAL_CONSUMER_SECRET = os.getenv("PESAPAL_CONSUMER_SECRET")
 
     # =========================================================================
     # M-Pesa Daraja API Configuration

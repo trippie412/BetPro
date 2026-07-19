@@ -211,6 +211,10 @@ class Deposit(db.Model):
     checkout_request_id = db.Column(db.String(100), unique=True, nullable=True)
     merchant_request_id = db.Column(db.String(100), nullable=True)
     callback_data = db.Column(db.Text, nullable=True)
+    
+    # Pesapal fields
+    pesapal_order_tracking_id = db.Column(db.String(100), nullable=True, unique=True)
+    pesapal_merchant_reference = db.Column(db.String(100), nullable=True)
 
     reference = db.Column(db.String(64), unique=True, default=generate_uuid)
     notes = db.Column(db.Text, nullable=True)

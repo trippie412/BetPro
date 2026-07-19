@@ -365,85 +365,115 @@ class PaymentService:
     """Abstract payment gateway service layer."""
 
     @staticmethod
-    def process_deposit(deposit):
-        """Process a deposit via M-Pesa STK Push."""
+    def process_deposit(deposit, provider="mpesa"):
+        """
+        Process a deposit using the selected payment provider.
+
+        Supported providers:
+            - mpesa (Daraja STK Push)
+            - pesapal (Pesapal Checkout)
+        """
+
+        # ==========================================================
+        # SELECT PAYMENT PROVIDER
+        # ==========================================================
+
+        if provider.lower() == "pesapal":
+            from app.services import PesapalService
+
+            return PesapalService.process_deposit(deposit)
+
+        # Default provider is M-Pesa
         from app.services import MpesaService, MpesaError
 
         user = deposit.user
 
-        # ===== DEBUG: Print deposit info =====
+        # ==========================================================
+        # DEBUG INFORMATION
+        # ==========================================================
+
         print("\n" + "=" * 60)
-        print("📝 PROCESSING DEPOSIT")
-        print(f"   Deposit ID: {deposit.id}")
-        print(f"   Amount: {deposit.amount}")
-        print(f"   User ID: {user.id}")
-        print(f"   User object: {user}")
-        # =====================================
+        print("📝 PROCESSING M-PESA DEPOSIT")
+        print(f"Deposit ID : {deposit.id}")
+        print(f"Amount     : {deposit.amount}")
+        print(f"User ID    : {user.id}")
+        print("=" * 60)
 
-        phone = deposit.phone_number or getattr(user, "phone", None) or getattr(user, "phone_number", None)
+        phone = (
+            deposit.phone_number
+            or getattr(user, "phone", None)
+            or getattr(user, "phone_number", None)
+        )
 
-        # ===== DEBUG: Print phone number =====
-        print(f"📞 Phone from DB: '{phone}'")
-        # =====================================
+        print(f"📞 Phone: {phone}")
 
         if not phone:
-            print("❌ NO PHONE NUMBER FOUND ON USER!")
             return {
-                'success': False,
-                'message': 'Phone number is required for M-Pesa deposit'
+                "success": False,
+                "message": "Phone number is required for M-Pesa deposit"
             }
 
-        account_ref = f'DEP-{deposit.id}'[:12]
-        description = 'Wallet Deposit'
-
-        # ===== DEBUG: Show what we're sending =====
-        print(f"   Account Ref: {account_ref}")
-        print(f"   Calling MpesaService.stk_push()...")
-        # ==========================================
+        account_ref = f"DEP-{deposit.id}"[:12]
+        description = "Wallet Deposit"
 
         try:
+
             result = MpesaService.stk_push(
                 phone=phone,
                 amount=int(deposit.amount),
                 account_reference=account_ref,
                 transaction_desc=description,
                 callback_url=current_app.config.get(
-                    'MPESA_CALLBACK_URL',
-                    'https://your-domain.com/api/mpesa/callback'
+                    "MPESA_CALLBACK_URL"
                 ),
             )
 
-            # ===== DEBUG: Show result =====
-            print(f"   STK Push result: {result}")
-            # ===============================
+            print(result)
 
-            if result['success']:
-                deposit.checkout_request_id = result['CheckoutRequestID']
+            if result.get("success"):
+
+                deposit.checkout_request_id = result.get("CheckoutRequestID")
                 deposit.status = REQUEST_PENDING
+
                 db.session.commit()
 
-                print("✅ STK Push sent successfully!")
                 return {
-                    'success': True,
-                    'transaction_id': result['CheckoutRequestID'],
-                    'merchant_request_id': result['MerchantRequestID'],
-                    'message': 'STK Push sent. Check your phone to complete payment.',
-                    'checkout_request_id': result['CheckoutRequestID'],
-                }
-            else:
-                print(f"❌ STK Push failed: {result.get('ResponseDescription')}")
-                return {
-                    'success': False,
-                    'message': result.get('ResponseDescription', 'STK Push failed'),
-                    'response_code': result.get('ResponseCode'),
+                    "success": True,
+                    "provider": "mpesa",
+                    "transaction_id": result.get("CheckoutRequestID"),
+                    "merchant_request_id": result.get("MerchantRequestID"),
+                    "checkout_request_id": result.get("CheckoutRequestID"),
+                    "message": "STK Push sent successfully. Complete payment on your phone."
                 }
 
-        except MpesaError as e:
-            print(f"❌ M-Pesa Error: {e}")
-            logger.error(f'M-Pesa deposit failed for deposit #{deposit.id}: {e}')
             return {
-                'success': False,
-                'message': f'M-Pesa error: {e}',
+                "success": False,
+                "provider": "mpesa",
+                "message": result.get(
+                    "ResponseDescription",
+                    "Unable to send STK Push."
+                ),
+                "response_code": result.get("ResponseCode"),
+            }
+
+        except MpesaError as e:
+
+            logger.exception(e)
+
+            return {
+                "success": False,
+                "provider": "mpesa",
+                "message": str(e)
+            }
+
+        except Exception as e:
+
+            logger.exception(e)
+
+            return {
+                "success": False,
+                "provider": "mpesa",
+                "message": f"Unexpected error: {e}"
             }
 
     @staticmethod
@@ -463,7 +493,174 @@ class PaymentService:
         from app.services import MpesaService
         normalized = MpesaService._format_phone(phone)
         return normalized is not None
+    
+class PesapalService:
+    """Pesapal Payment Gateway"""
 
+    @staticmethod
+    def process_deposit(deposit):
+
+        token = get_pesapal_token()
+
+        user = deposit.user
+
+        url = (
+            f"{current_app.config['PESAPAL_BASE_URL']}"
+            "/api/Transactions/SubmitOrderRequest"
+        )
+
+        payload = {
+            "id": deposit.reference,
+            "currency": "KES",
+            "amount": float(deposit.amount),
+            "description": "BetPro Wallet Deposit",
+            "callback_url": current_app.config["PESAPAL_CALLBACK_URL"],
+            "notification_id": current_app.config["PESAPAL_NOTIFICATION_ID"],
+
+            "billing_address": {
+                "email_address": user.email,
+                "phone_number": deposit.phone_number or user.phone,
+                "country_code": "KE",
+                "first_name": user.full_name,
+                "middle_name": "",
+                "last_name": ""
+            }
+        }
+
+        headers = {
+            "Authorization": f"Bearer {token}",
+            "Accept": "application/json",
+            "Content-Type": "application/json"
+        }
+
+        response = requests.post(
+            url,
+            json=payload,
+            headers=headers,
+            timeout=30
+        )
+
+        response.raise_for_status()
+
+        data = response.json()
+
+        print("=" * 60)
+        print("PESAPAL RESPONSE")
+        print(data)
+        print("=" * 60)
+
+        if data.get("status") != "200":
+            return {
+                "success": False,
+                "provider": "pesapal",
+                "message": data.get("message", "Unable to create payment.")
+            }
+
+        deposit.pesapal_order_tracking_id = data["order_tracking_id"]
+        deposit.pesapal_merchant_reference = data["merchant_reference"]
+        deposit.status = REQUEST_PENDING
+
+        db.session.commit()
+
+        return {
+            "success": True,
+            "provider": "pesapal",
+            "redirect_url": data["redirect_url"],
+            "tracking_id": data["order_tracking_id"],
+            "merchant_reference": data["merchant_reference"]
+        }
+
+@staticmethod
+def get_transaction_status(order_tracking_id):
+    """
+    Verify a Pesapal transaction and credit the user's wallet
+    if payment was successful.
+    """
+
+    token = get_pesapal_token()
+
+    url = (
+        f"{current_app.config['PESAPAL_BASE_URL']}"
+        f"/api/Transactions/GetTransactionStatus"
+        f"?orderTrackingId={order_tracking_id}"
+    )
+
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Accept": "application/json"
+    }
+
+    response = requests.get(
+        url,
+        headers=headers,
+        timeout=30
+    )
+
+    response.raise_for_status()
+
+    data = response.json()
+
+    print("=" * 60)
+    print("PESAPAL STATUS")
+    print(data)
+    print("=" * 60)
+
+    deposit = Deposit.query.filter_by(
+        pesapal_order_tracking_id=order_tracking_id
+    ).first()
+
+    if not deposit:
+        return {
+            "success": False,
+            "message": "Deposit not found."
+        }
+
+    # Prevent duplicate crediting
+    if deposit.status == REQUEST_APPROVED:
+        return {
+            "success": True,
+            "message": "Deposit already processed."
+        }
+
+    payment_status = (
+        data.get("payment_status_description")
+        or data.get("payment_status")
+        or ""
+    ).lower()
+
+    if payment_status in [
+        "completed",
+        "paid",
+        "success"
+    ]:
+
+        deposit.status = REQUEST_APPROVED
+
+        deposit.transaction_code = data.get(
+            "confirmation_code",
+            order_tracking_id
+        )
+
+        WalletService.add_funds(
+            deposit.user,
+            deposit.amount,
+            "Pesapal Deposit"
+        )
+
+        db.session.commit()
+
+        return {
+            "success": True,
+            "message": "Wallet credited."
+        }
+
+    deposit.status = REQUEST_REJECTED
+    db.session.commit()
+
+    return {
+        "success": False,
+        "message": payment_status
+    }
 
 # =============================================================================
 # LIVE DATA SERVICE
@@ -691,8 +888,168 @@ class LiveDataService:
         db.session.commit()
 
         return imported
+    
+
+import requests
+from flask import current_app
 
 
+def get_pesapal_token():
+    """
+    Authenticate with Pesapal and return an access token.
+    """
+
+    url = f"{os.getenv('PESAPAL_BASE_URL')}/api/Auth/RequestToken"
+
+    payload = {
+        "consumer_key": os.getenv("PESAPAL_CONSUMER_KEY"),
+        "consumer_secret": os.getenv("PESAPAL_CONSUMER_SECRET")
+    }
+
+    headers = {
+        "Accept": "application/json",
+        "Content-Type": "application/json"
+    }
+
+    response = requests.post(
+        url,
+        json=payload,
+        headers=headers,
+        timeout=30
+    )
+
+    response.raise_for_status()
+
+    data = response.json()
+
+    return data["token"]
+
+class PesapalService:
+    """Pesapal Payment Gateway Service."""
+
+    @staticmethod
+    def process_deposit(deposit):
+        """
+        Process a deposit through Pesapal.
+        """
+
+        token = get_pesapal_token()
+
+        return {
+            "success": True,
+            "provider": "pesapal",
+            "token": token,
+            "message": "Pesapal authentication successful."
+        }
+
+
+import os
+import requests
+
+
+class PesapalService:
+
+    @staticmethod
+    def register_ipn():
+        """
+        Register the IPN URL with Pesapal.
+        """
+
+        token = get_pesapal_token()
+
+        url = (
+            f"{os.getenv('PESAPAL_BASE_URL')}"
+            "/api/URLSetup/RegisterIPN"
+        )
+
+        headers = {
+            "Authorization": f"Bearer {token}",
+            "Accept": "application/json",
+            "Content-Type": "application/json",
+        }
+
+        payload = {
+            "url": os.getenv("PESAPAL_IPN_URL"),
+            "ipn_notification_type": "POST"
+        }
+
+        response = requests.post(
+            url,
+            json=payload,
+            headers=headers,
+            timeout=30
+        )
+
+        response.raise_for_status()
+
+        return response.json()
+    
+    
+import requests
+from flask import current_app
+from app import db
+
+
+def submit_pesapal_order(deposit):
+    """
+    Create a Pesapal payment request and return the redirect URL.
+    """
+
+    token = get_pesapal_token()
+
+    user = deposit.user
+
+    url = f"{current_app.config['PESAPAL_BASE_URL']}/api/Transactions/SubmitOrderRequest"
+
+    payload = {
+        "id": deposit.reference,
+        "currency": "KES",
+        "amount": float(deposit.amount),
+        "description": "BetPro Wallet Deposit",
+        "callback_url": current_app.config["PESAPAL_CALLBACK_URL"],
+        "notification_id": current_app.config["PESAPAL_NOTIFICATION_ID"],
+        "billing_address": {
+            "email_address": user.email,
+            "phone_number": deposit.phone_number or user.phone,
+            "country_code": "KE",
+            "first_name": user.full_name,
+            "middle_name": "",
+            "last_name": ""
+        }
+    }
+
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Accept": "application/json",
+        "Content-Type": "application/json"
+    }
+
+    response = requests.post(
+        url,
+        json=payload,
+        headers=headers,
+        timeout=30
+    )
+
+    response.raise_for_status()
+
+    data = response.json()
+
+    if data.get("status") != "200":
+        raise Exception(data.get("message", "Pesapal request failed"))
+
+    deposit.pesapal_order_tracking_id = data["order_tracking_id"]
+    deposit.pesapal_merchant_reference = data["merchant_reference"]
+
+    db.session.commit()
+
+    return {
+        "success": True,
+        "redirect_url": data["redirect_url"],
+        "tracking_id": data["order_tracking_id"]
+    }
+    
+    
 # =============================================================================
 # MPESA SERVICE
 # =============================================================================

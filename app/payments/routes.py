@@ -11,7 +11,7 @@ from app.services import PaymentService
 from app.constants import REQUEST_APPROVED, REQUEST_REJECTED
 
 
-from app.services import MpesaService, WalletService
+from app.services import MpesaService, WalletService,  PesapalService
 
 @payments_bp.route("/callback/mpesa", methods=["POST"])
 def payment_callback():
@@ -50,6 +50,39 @@ def payment_callback():
         db.session.commit()
 
     return jsonify({"ResultCode": 0})
+
+
+@payments_bp.route("/callback/pesapal", methods=["GET"])
+def pesapal_callback():
+    """
+    User is redirected here by Pesapal after payment.
+    """
+
+    order_tracking_id = request.args.get("OrderTrackingId")
+
+    if not order_tracking_id:
+        flash("Missing Pesapal tracking ID.", "danger")
+        return redirect(url_for("wallet.index"))
+
+    return redirect(
+        url_for(
+            "payments.pesapal_verify",
+            tracking_id=order_tracking_id
+        )
+    )
+    
+@payments_bp.route("/verify/pesapal/<tracking_id>")
+def pesapal_verify(tracking_id):
+
+    result = PesapalService.get_transaction_status(tracking_id)
+
+    if not result["success"]:
+        flash("Unable to verify payment.", "danger")
+        return redirect(url_for("wallet.index"))
+
+    flash("Payment verified successfully.", "success")
+
+    return redirect(url_for("wallet.index"))
 
 
 @payments_bp.route('/status/<reference>')
