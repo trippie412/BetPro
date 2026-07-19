@@ -10,6 +10,10 @@ class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY', 'betpro-dev-secret-key-change-in-production-2026')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL', 'sqlite:///' + os.path.join(basedir, 'database', 'betpro.db'))
+    SQLALCHEMY_ENGINE_OPTIONS = {
+    "pool_pre_ping": True,
+    "pool_recycle": 300,
+    }
 
     # Flask-Mail
     MAIL_SERVER = os.environ.get('MAIL_SERVER', 'smtp.gmail.com')
