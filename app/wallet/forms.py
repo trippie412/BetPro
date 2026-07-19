@@ -5,15 +5,30 @@ from wtforms.validators import DataRequired, NumberRange, Optional, Length
 
 
 class DepositForm(FlaskForm):
-    amount = FloatField('Amount (KES)', validators=[DataRequired(), NumberRange(min=50)])
-    payment_method = SelectField('Payment Method', choices=[
-        ('mpesa', 'M-Pesa'), ('airtel_money', 'Airtel Money'),
-        ('bank_transfer', 'Bank Transfer'), ('card', 'Debit/Credit Card')
-    ], validators=[DataRequired()])
-    phone_number = StringField('Phone Number', validators=[DataRequired(), Length(8, 20)])
+    amount = FloatField(
+        'Amount (KES)',
+        validators=[DataRequired(), NumberRange(min=50)]
+    )
+
+    payment_method = SelectField(
+        'Payment Method',
+        choices=[
+            ('mpesa', 'M-Pesa'),
+            ('pesapal', 'Pesapal'),
+            ('airtel_money', 'Airtel Money'),
+            ('bank_transfer', 'Bank Transfer'),
+            ('card', 'Debit/Credit Card')
+        ],
+        validators=[DataRequired()]
+    )
+
+    phone_number = StringField(
+        'Phone Number',
+        validators=[DataRequired(), Length(8, 20)]
+    )
+
     submit = SubmitField('Deposit Now')
-
-
+    
 class WithdrawalForm(FlaskForm):
     amount = FloatField('Amount (KES)', validators=[DataRequired(), NumberRange(min=100)])
     payment_method = SelectField('Payment Method', choices=[
