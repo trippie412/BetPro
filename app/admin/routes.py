@@ -255,6 +255,22 @@ def adjust_user_balance(user_id):
     db.session.commit()
     return redirect(url_for('admin.user_detail', user_id=user.id))
 
+@admin_bp.route('/users/<int:user_id>/delete', methods=['POST'])
+@login_required
+@admin_required
+def delete_user(user_id):
+    user = User.query.get_or_404(user_id)
+
+    # Prevent deleting yourself
+    if user.id == current_user.id:
+        flash("You cannot delete your own account.", "danger")
+        return redirect(url_for('admin.users'))
+
+    db.session.delete(user)
+    db.session.commit()
+
+    flash(f"User {user.username} deleted successfully.", "success")
+    return redirect(url_for('admin.users'))
 
 # =============================================================================
 # DEPOSITS

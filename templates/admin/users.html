@@ -65,19 +65,30 @@
                         {% endif %}
                     </td>
                     <td>
-                        <div class="btn-group-action">
-                            <a href="{{ url_for('admin.user_detail', user_id=user.id) }}" class="btn btn-sm btn-outline-info" title="View">
+                        <div class="btn-group btn-group-sm">
+                            <a href="{{ url_for('admin.user_detail', user_id=user.id) }}" class="btn btn-outline-info" title="View">
                                 <i class="fas fa-eye"></i>
                             </a>
-                            <a href="{{ url_for('admin.edit_user', user_id=user.id) }}" class="btn btn-sm btn-outline-primary" title="Edit">
+                            <a href="{{ url_for('admin.edit_user', user_id=user.id) }}" class="btn btn-outline-primary" title="Edit">
                                 <i class="fas fa-edit"></i>
                             </a>
+                            
+                            <!-- Toggle Suspend Form -->
                             <form method="POST" action="{{ url_for('admin.toggle_suspend', user_id=user.id) }}" class="d-inline">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                <button class="btn btn-sm btn-outline-{{ 'success' if user.is_suspended else 'danger' }}"
+                                <button type="submit" class="btn btn-outline-{{ 'success' if user.is_suspended else 'danger' }}"
                                         title="{{ 'Activate' if user.is_suspended else 'Suspend' }}"
                                         onclick="return confirm('{{ 'Activate' if user.is_suspended else 'Suspend' }} user {{ user.username }}?')">
                                     <i class="fas fa-{{ 'check' if user.is_suspended else 'ban' }}"></i>
+                                </button>
+                            </form>
+
+                            <!-- Delete User Form -->
+                            <form method="POST" action="{{ url_for('admin.delete_user', user_id=user.id) }}" class="d-inline">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn btn-outline-danger" title="Delete User"
+                                        onclick="return confirm('Are you sure you want to permanently delete {{ user.username }}? This action cannot be undone.')">
+                                    <i class="fas fa-trash"></i>
                                 </button>
                             </form>
                         </div>
