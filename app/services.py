@@ -361,43 +361,22 @@ class AdminLogService:
 # PAYMENT SERVICE
 # =============================================================================
 
+# =============================================================================
+# PAYMENT SERVICE
+# =============================================================================
+
 class PaymentService:
-    """Abstract payment gateway service layer."""
+    """Payment gateway service using PalPluss."""
 
     @staticmethod
-    def process_deposit(deposit, provider="mpesa"):
+    def process_deposit(deposit, provider="palpluss"):
         """
-        Process a deposit using the selected payment provider.
-
-        Supported providers:
-            - mpesa (Daraja STK Push)
-            - pesapal (Pesapal Checkout)
+        Initiate a PalPluss STK Push.
         """
 
-        # ==========================================================
-        # SELECT PAYMENT PROVIDER
-        # ==========================================================
-
-        if provider.lower() == "pesapal":
-            from app.services import PesapalService
-
-            return PesapalService.process_deposit(deposit)
-
-        # Default provider is M-Pesa
-        from app.services import MpesaService, MpesaError
+        from app.payments.palpluss import send_stk
 
         user = deposit.user
-
-        # ==========================================================
-        # DEBUG INFORMATION
-        # ==========================================================
-
-        print("\n" + "=" * 60)
-        print("📝 PROCESSING M-PESA DEPOSIT")
-        print(f"Deposit ID : {deposit.id}")
-        print(f"Amount     : {deposit.amount}")
-        print(f"User ID    : {user.id}")
-        print("=" * 60)
 
         phone = (
             deposit.phone_number
@@ -405,76 +384,98 @@ class PaymentService:
             or getattr(user, "phone_number", None)
         )
 
-        print(f"📞 Phone: {phone}")
-
         if not phone:
             return {
                 "success": False,
-                "message": "Phone number is required for M-Pesa deposit"
+                "message": "Phone number is required."
             }
-
-        account_ref = f"DEP-{deposit.id}"[:12]
-        description = "Wallet Deposit"
 
         try:
-
-            result = MpesaService.stk_push(
+            response = send_stk(
                 phone=phone,
-                amount=int(deposit.amount),
-                account_reference=account_ref,
-                transaction_desc=description,
-                callback_url=current_app.config.get(
-                    "MPESA_CALLBACK_URL"
-                ),
+                amount=float(deposit.amount)
             )
 
-            print(result)
-
-            if result.get("success"):
-
-                deposit.checkout_request_id = result.get("CheckoutRequestID")
-                deposit.status = REQUEST_PENDING
-
-                db.session.commit()
-
+            if not response.get("success"):
                 return {
-                    "success": True,
-                    "provider": "mpesa",
-                    "transaction_id": result.get("CheckoutRequestID"),
-                    "merchant_request_id": result.get("MerchantRequestID"),
-                    "checkout_request_id": result.get("CheckoutRequestID"),
-                    "message": "STK Push sent successfully. Complete payment on your phone."
+                    "success": False,
+                    "provider": "palpluss",
+                    "message": response.get(
+                        "message",
+                        "Unable to initiate payment."
+                    )
                 }
 
+            data = response.get("data", {})
+
+            deposit.checkout_request_id = data.get(
+                "providerCheckoutId"
+            )
+
+            deposit.transaction_code = data.get(
+                "transactionId"
+            )
+
+            deposit.status = REQUEST_PENDING
+
+            db.session.commit()
+
             return {
-                "success": False,
-                "provider": "mpesa",
-                "message": result.get(
-                    "ResponseDescription",
-                    "Unable to send STK Push."
-                ),
-                "response_code": result.get("ResponseCode"),
-            }
-
-        except MpesaError as e:
-
-            logger.exception(e)
-
-            return {
-                "success": False,
-                "provider": "mpesa",
-                "message": str(e)
+                "success": True,
+                "provider": "palpluss",
+                "transaction_id": data.get("transactionId"),
+                "checkout_request_id": data.get("providerCheckoutId"),
+                "merchant_request_id": data.get("providerRequestId"),
+                "status": data.get("status"),
+                "message": (
+                    "STK Push sent successfully. "
+                    "Complete payment on your phone."
+                )
             }
 
         except Exception as e:
-
             logger.exception(e)
 
             return {
                 "success": False,
-                "provider": "mpesa",
-                "message": f"Unexpected error: {e}"
+                "provider": "palpluss",
+                "message": str(e)
             }
+
+    @staticmethod
+    def process_withdrawal(withdrawal):
+        """
+        Placeholder until PalPluss B2C is integrated.
+        """
+        withdrawal.status = WITHDRAWAL_PENDING
+        db.session.commit()
+
+        return {
+            "success": True,
+            "transaction_id": f"WD-{withdrawal.reference}",
+            "message": "Withdrawal queued for processing."
+        }
+
+    @staticmethod
+    def validate_phone(phone, country="KE"):
+        """
+        PalPluss accepts:
+        07XXXXXXXX
+        01XXXXXXXX
+        254XXXXXXXXX
+        +254XXXXXXXXX
+        """
+        if not phone:
+            return False
+
+        phone = str(phone).strip()
+
+        return (
+            phone.startswith("07")
+            or phone.startswith("01")
+            or phone.startswith("254")
+            or phone.startswith("+254")
+        )
 
     @staticmethod
     def process_withdrawal(withdrawal):

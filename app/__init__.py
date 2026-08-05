@@ -106,6 +106,7 @@ def _register_blueprints(app):
     from app.reports.routes import reports_bp
     from app.api.routes import api_bp
     from app.errors.routes import errors_bp
+    from app.webhooks.routes import webhook
 
     blueprints = [
         (auth_bp, '/auth'),
@@ -120,6 +121,10 @@ def _register_blueprints(app):
         (profile_bp, '/profile'),
         (reports_bp, '/reports'),
         (api_bp, '/api/v1'),
+
+        # PalPluss webhook
+        (webhook, '/webhooks'),
+
         (errors_bp, '/errors'),
     ]
 
