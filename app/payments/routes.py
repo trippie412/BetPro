@@ -22,5 +22,3 @@ def deposit():
         amount
     )
 
-
-    return jsonify(response)
