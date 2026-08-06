@@ -6,120 +6,118 @@
 <div class="container-fluid py-3">
   <div class="row g-4">
 
+    <!-- MATCHES COLUMN -->
     <div class="col-lg-9">
 
       <div class="d-flex justify-content-between align-items-center mb-3">
         <h3 class="fw-bold mb-0">Place Bet</h3>
 
         <button type="button"
-                class="btn btn-warning btn-sm d-lg-none"
-                data-bs-toggle="offcanvas"
-                data-bs-target="#betslipOffcanvas">
+                class="btn btn-warning d-lg-none"
+                onclick="openMobileBetSlip()">
           <i class="fas fa-receipt me-1"></i>
           Bet Slip
           <span class="betslip-count badge bg-dark ms-1">0</span>
         </button>
       </div>
 
-      <div class="glass-card p-3 mb-4">
-        <div class="d-flex flex-wrap gap-2">
-
-          <a href="{{ url_for('betting.index') }}"
-             class="btn btn-sm {% if not request.args.get('sport') %}btn-warning{% else %}btn-outline-secondary{% endif %}">
-            All Sports
-          </a>
-
-          {% for sport in sports %}
-          <a href="{{ url_for('betting.index', sport=sport.slug) }}"
-             class="btn btn-sm {% if request.args.get('sport') == sport.slug %}btn-warning{% else %}btn-outline-secondary{% endif %}">
-            <i class="fas {{ sport.icon }} me-1"></i>
-            {{ sport.name }}
-          </a>
-          {% endfor %}
-
-        </div>
-      </div>
-
       {% if matches_by_league %}
-
         {% for league_name, league_matches in matches_by_league.items() %}
-        <div class="glass-card mb-4 overflow-hidden">
 
-          <div class="p-3 border-bottom d-flex justify-content-between align-items-center">
+        <div class="card mb-4 bg-dark text-light border-secondary">
+
+          <div class="card-header d-flex justify-content-between align-items-center">
             <strong>{{ league_name }}</strong>
             <small class="text-muted">{{ league_matches|length }} Matches</small>
           </div>
 
-          {% for match in league_matches %}
-          {% set odds = match.main_odds %}
+          <div class="card-body p-0">
 
-          <div class="p-3 border-bottom">
-            <div class="row align-items-center g-3">
+            {% for match in league_matches %}
+            {% set odds = match.main_odds %}
 
-              <div class="col-md-5">
-                <div class="fw-bold">{{ match.home_team }}</div>
-                <small class="text-muted">vs</small>
-                <div class="fw-bold">{{ match.away_team }}</div>
-                <small class="text-muted d-block mt-1">
-                  {{ match.match_date.strftime('%d %b %Y %H:%M') }}
-                </small>
-              </div>
+            <div class="p-3 border-bottom border-secondary">
 
-              <div class="col-md-7">
-                {% if odds %}
-                <div class="d-flex justify-content-end flex-wrap gap-2">
+              <div class="row align-items-center g-3">
 
-                  <button class="btn btn-outline-warning team-odds"
-                          data-match-name="{{ match.home_team }} vs {{ match.away_team }}"
-                          data-selection-label="1 - {{ match.home_team }}"
-                          data-odds="{{ odds.home_win }}">
-                    <div class="small fw-bold">1</div>
-                    {{ '%.2f'|format(odds.home_win) }}
-                  </button>
+                <div class="col-md-5">
+                  <div class="fw-bold">{{ match.home_team }}</div>
+                  <small class="text-muted">vs</small>
+                  <div class="fw-bold">{{ match.away_team }}</div>
+                  <small class="text-muted d-block mt-1">
+                    {{ match.match_date.strftime('%d %b %Y %H:%M') }}
+                  </small>
+                </div>
 
-                  {% if odds.draw %}
-                  <button class="btn btn-outline-warning team-odds"
-                          data-match-name="{{ match.home_team }} vs {{ match.away_team }}"
-                          data-selection-label="X - Draw"
-                          data-odds="{{ odds.draw }}">
-                    <div class="small fw-bold">X</div>
-                    {{ '%.2f'|format(odds.draw) }}
-                  </button>
+                <div class="col-md-7">
+
+                  {% if odds %}
+
+                  <div class="d-flex justify-content-end flex-wrap gap-2">
+
+                    <button type="button"
+                            class="btn btn-outline-warning team-odds"
+                            data-match-name="{{ match.home_team }} vs {{ match.away_team }}"
+                            data-selection-label="1 - {{ match.home_team }}"
+                            data-odds="{{ odds.home_win }}">
+                      <div class="small fw-bold">1</div>
+                      {{ '%.2f'|format(odds.home_win) }}
+                    </button>
+
+                    {% if odds.draw %}
+                    <button type="button"
+                            class="btn btn-outline-warning team-odds"
+                            data-match-name="{{ match.home_team }} vs {{ match.away_team }}"
+                            data-selection-label="X - Draw"
+                            data-odds="{{ odds.draw }}">
+                      <div class="small fw-bold">X</div>
+                      {{ '%.2f'|format(odds.draw) }}
+                    </button>
+                    {% endif %}
+
+                    <button type="button"
+                            class="btn btn-outline-warning team-odds"
+                            data-match-name="{{ match.home_team }} vs {{ match.away_team }}"
+                            data-selection-label="2 - {{ match.away_team }}"
+                            data-odds="{{ odds.away_win }}">
+                      <div class="small fw-bold">2</div>
+                      {{ '%.2f'|format(odds.away_win) }}
+                    </button>
+
+                  </div>
+
+                  {% else %}
+                  <span class="text-muted">Odds unavailable</span>
                   {% endif %}
 
-                  <button class="btn btn-outline-warning team-odds"
-                          data-match-name="{{ match.home_team }} vs {{ match.away_team }}"
-                          data-selection-label="2 - {{ match.away_team }}"
-                          data-odds="{{ odds.away_win }}">
-                    <div class="small fw-bold">2</div>
-                    {{ '%.2f'|format(odds.away_win) }}
-                  </button>
-
                 </div>
-                {% else %}
-                <span class="text-muted">Odds unavailable</span>
-                {% endif %}
+
               </div>
 
             </div>
+
+            {% endfor %}
+
           </div>
 
-          {% endfor %}
         </div>
-        {% endfor %}
 
+        {% endfor %}
       {% else %}
 
-      <div class="glass-card p-5 text-center">
-        <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
-        <h5>No Matches Available</h5>
-        <p class="text-muted mb-0">Check back later.</p>
+      <div class="card bg-dark text-light border-secondary">
+        <div class="card-body text-center py-5">
+          <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+          <h5>No Matches Available</h5>
+          <p class="text-muted mb-0">Check back later.</p>
+        </div>
       </div>
 
       {% endif %}
 
     </div>
 
+    <!-- DESKTOP BET SLIP -->
     <div class="col-lg-3 d-none d-lg-block">
       <div class="position-sticky" style="top:80px;">
         {% include 'betting/bet_slip.html' %}
@@ -129,11 +127,12 @@
   </div>
 </div>
 
+<!-- FLOATING MOBILE BUTTON -->
 <button id="betslipFloatingBtn"
         type="button"
         class="btn btn-warning position-fixed d-lg-none shadow-lg"
-        style="bottom:20px; right:20px; z-index:9999; border-radius:50px; padding:12px 18px;"
-        onclick="openMobileBetSlip(); return false;">
+        style="bottom:20px; right:20px; z-index:99999; border-radius:50px; padding:14px 20px;"
+        onclick="openMobileBetSlip()">
 
   <i class="fas fa-receipt me-2"></i>
   Bet Slip
@@ -141,6 +140,7 @@
 
 </button>
 
+<!-- MOBILE BET SLIP -->
 <div class="offcanvas offcanvas-end d-lg-none"
      tabindex="-1"
      id="betslipOffcanvas"
@@ -162,80 +162,38 @@
   </div>
 
 </div>
+
+{% endblock %}
+
 {% block extra_js %}
 <script>
-
-// =============================
 // Open mobile bet slip
-// =============================
 function openMobileBetSlip() {
-
     const offcanvasEl = document.getElementById('betslipOffcanvas');
-
-    if (!offcanvasEl) {
-        console.error('betslipOffcanvas not found');
-        return;
-    }
-
-    if (typeof bootstrap === 'undefined') {
-        console.error('Bootstrap JS not loaded');
-        return;
-    }
-
-    const instance = bootstrap.Offcanvas.getOrCreateInstance(offcanvasEl);
-
-    instance.show();
+    if (!offcanvasEl || typeof bootstrap === 'undefined') return;
+    bootstrap.Offcanvas.getOrCreateInstance(offcanvasEl).show();
 }
 
 document.addEventListener('DOMContentLoaded', function () {
 
     let selections = [];
 
-    const countEls   = document.querySelectorAll('.betslip-count');
-    const containers = document.querySelectorAll('.betslip-selections');
-    const emptyEls   = document.querySelectorAll('.betslip-empty');
-    const areaEls    = document.querySelectorAll('.betslip-selections-area');
-    const footerEls  = document.querySelectorAll('.betslip-footer');
-    const oddsEls    = document.querySelectorAll('.betslip-total-odds');
-    const stakeInput = document.getElementById('betslipStake');
-    const potentialEl = document.getElementById('betslipPotential');
+    const countEls    = document.querySelectorAll('.betslip-count');
+    const containers  = document.querySelectorAll('.betslip-selections');
+    const emptyEls    = document.querySelectorAll('.betslip-empty');
+    const areaEls     = document.querySelectorAll('.betslip-selections-area');
+    const footerEls   = document.querySelectorAll('.betslip-footer');
+    const oddsEls     = document.querySelectorAll('.betslip-total-odds');
 
-    // =============================
-    // Calculate potential win
-    // =============================
-    function calculatePotential() {
-
-        if (!stakeInput || !potentialEl) return;
-
-        const stake = parseFloat(stakeInput.value) || 0;
-
-        const totalOdds = selections.reduce((t, s) => t * s.odds, 1);
-
-        const potential = stake * totalOdds;
-
-        potentialEl.textContent = 'KES ' + potential.toFixed(2);
-    }
-
-    // =============================
-    // Render bet slip
-    // =============================
     function renderBetSlip() {
 
-        countEls.forEach(el => {
-            el.textContent = selections.length;
-        });
+        countEls.forEach(el => el.textContent = selections.length);
 
         if (selections.length === 0) {
-
             emptyEls.forEach(el => el.style.display = 'block');
             areaEls.forEach(el => el.style.display = 'none');
             footerEls.forEach(el => el.style.display = 'none');
             oddsEls.forEach(el => el.textContent = '0.00');
-
-            if (potentialEl) {
-                potentialEl.textContent = 'KES 0.00';
-            }
-
             return;
         }
 
@@ -244,6 +202,8 @@ document.addEventListener('DOMContentLoaded', function () {
         footerEls.forEach(el => el.style.display = 'block');
 
         const totalOdds = selections.reduce((t, s) => t * s.odds, 1);
+
+        oddsEls.forEach(el => el.textContent = totalOdds.toFixed(2));
 
         containers.forEach(container => {
 
@@ -273,13 +233,6 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         });
 
-        oddsEls.forEach(el => {
-            el.textContent = totalOdds.toFixed(2);
-        });
-
-        calculatePotential();
-
-        // Remove selection buttons
         document.querySelectorAll('.remove-selection').forEach(btn => {
 
             btn.onclick = function () {
@@ -308,9 +261,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // =============================
-    // Odds click handling
-    // =============================
+    // Odds selection
     document.querySelectorAll('.team-odds').forEach(btn => {
 
         btn.onclick = function () {
@@ -325,7 +276,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 s => s.match === match && s.label === label
             );
 
-            // Remove highlight from this match
+            // Clear highlights for this match
             document.querySelectorAll('.team-odds').forEach(b => {
 
                 if (b.dataset.matchName === match) {
@@ -349,7 +300,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 this.classList.remove('btn-outline-warning');
                 this.classList.add('btn-warning');
 
-                // Auto open on mobile
                 if (window.innerWidth < 992) {
                     openMobileBetSlip();
                 }
@@ -359,12 +309,6 @@ document.addEventListener('DOMContentLoaded', function () {
         };
     });
 
-    // Stake input calculation
-    if (stakeInput) {
-        stakeInput.addEventListener('input', calculatePotential);
-    }
-
-    // Initial render
     renderBetSlip();
 });
 </script>
