@@ -168,52 +168,6 @@
 {% block extra_js %}
 <script>
 // Open mobile bet slip
-function openMobileBetSlip() {
-
-    const el = document.getElementById('betslipOffcanvas');
-
-    if (!el) {
-        alert('Offcanvas not found');
-        return;
-    }
-
-    // Force display without relying on Bootstrap triggers
-    el.classList.add('show');
-    el.style.visibility = 'visible';
-    el.style.display = 'block';
-    el.setAttribute('aria-modal', 'true');
-    el.removeAttribute('aria-hidden');
-
-    // Create backdrop manually
-    if (!document.querySelector('.offcanvas-backdrop')) {
-        const backdrop = document.createElement('div');
-        backdrop.className = 'offcanvas-backdrop fade show';
-        backdrop.onclick = closeMobileBetSlip;
-        document.body.appendChild(backdrop);
-    }
-
-    document.body.classList.add('offcanvas-open');
-}
-
-function closeMobileBetSlip() {
-
-    const el = document.getElementById('betslipOffcanvas');
-
-    if (!el) return;
-
-    el.classList.remove('show');
-    el.style.visibility = '';
-    el.style.display = '';
-    el.removeAttribute('aria-modal');
-    el.setAttribute('aria-hidden', 'true');
-
-    const backdrop = document.querySelector('.offcanvas-backdrop');
-
-    if (backdrop) backdrop.remove();
-
-    document.body.classList.remove('offcanvas-open');
-}
-
 document.addEventListener('DOMContentLoaded', function () {
 
     let selections = [];
