@@ -64,7 +64,7 @@ class RegistrationForm(FlaskForm):
         "Password",
         validators=[
             DataRequired(),
-            Length(min=8)
+            Length(min=6, message="Password must be at least 6 characters.")
         ]
     )
 
@@ -101,7 +101,7 @@ class ResetPasswordForm(FlaskForm):
         "New Password",
         validators=[
             DataRequired(),
-            Length(min=8)
+            Length(min=6, max=30)
         ]
     )
 
