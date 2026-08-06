@@ -298,84 +298,183 @@ function updateOddsButtonState(matchId, selectionType, selected) {
 }
 
 function updateBetSlipUI() {
-    const container = document.getElementById('betslipSelections');
-    const countEl = document.getElementById('betslipCount');
-    const countEl2 = document.getElementById('betslipCount2');
-    const totalOddsEl = document.getElementById('betslipTotalOdds');
-    const potentialEl = document.getElementById('betslipPotential');
-    const stakeInput = document.getElementById('betslipStake');
-    const placeBtn = document.getElementById('betslipPlaceBtn');
-    const emptyState = document.getElementById('betslipEmpty');
-    const selectionsArea = document.getElementById('betslipSelectionsArea');
-    const footerEl = document.getElementById('betslipFooter');
+
+    // =====================================================
+    // Bet slip elements (Desktop + Mobile)
+    // =====================================================
+
+    const containers = document.querySelectorAll('#betslipSelections');
+
+    const countEls = document.querySelectorAll('#betslipCount');
+    const countEls2 = document.querySelectorAll('#betslipCount2');
+
+    const totalOddsEls = document.querySelectorAll('#betslipTotalOdds');
+
+    const emptyStates = document.querySelectorAll('#betslipEmpty');
+    const selectionsAreas = document.querySelectorAll('#betslipSelectionsArea');
+    const footerEls = document.querySelectorAll('#betslipFooter');
+
     const floatingBadge = document.getElementById('betslipFloatingCount');
 
-    // Update count
-    if (countEl) countEl.textContent = betSlipSelections.length;
-    if (countEl2) countEl2.textContent = betSlipSelections.length;
-    if (floatingBadge) floatingBadge.textContent = betSlipSelections.length;
+    // =====================================================
+    // Update counters
+    // =====================================================
 
-    // Toggle empty state
+    countEls.forEach(el => {
+        el.textContent = betSlipSelections.length;
+    });
+
+    countEls2.forEach(el => {
+        el.textContent = betSlipSelections.length;
+    });
+
+    if (floatingBadge) {
+        floatingBadge.textContent = betSlipSelections.length;
+    }
+
+    // =====================================================
+    // Empty state
+    // =====================================================
+
     if (betSlipSelections.length === 0) {
-        if (emptyState) emptyState.style.display = 'block';
-        if (selectionsArea) selectionsArea.style.display = 'none';
-        if (footerEl) footerEl.style.display = 'none';
+
+        emptyStates.forEach(el => {
+            el.style.display = 'block';
+        });
+
+        selectionsAreas.forEach(el => {
+            el.style.display = 'none';
+        });
+
+        footerEls.forEach(el => {
+            el.style.display = 'none';
+        });
+
         return;
     }
 
-    if (emptyState) emptyState.style.display = 'none';
-    if (selectionsArea) selectionsArea.style.display = 'block';
-    if (footerEl) footerEl.style.display = 'block';
+    // =====================================================
+    // Show selections
+    // =====================================================
 
+    emptyStates.forEach(el => {
+        el.style.display = 'none';
+    });
+
+    selectionsAreas.forEach(el => {
+        el.style.display = 'block';
+    });
+
+    footerEls.forEach(el => {
+        el.style.display = 'block';
+    });
+
+    // =====================================================
     // Render selections
-    if (container) {
+    // =====================================================
+
+    containers.forEach(container => {
+
         container.innerHTML = '';
+
         betSlipSelections.forEach(function(sel, index) {
+
             const div = document.createElement('div');
-            div.className = 'betslip-selection d-flex justify-content-between align-items-center';
+
+            div.className =
+                'betslip-selection d-flex justify-content-between align-items-center';
+
             div.innerHTML = `
                 <div class="flex-grow-1">
                     <div class="small text-muted">${sel.match_name}</div>
                     <div class="fw-bold small">${sel.selection_label}</div>
-                    <div class="text-gold fw-bold" style="font-size: 13px;">@${parseFloat(sel.odds).toFixed(2)}</div>
+                    <div class="text-gold fw-bold" style="font-size:13px;">
+                        @${parseFloat(sel.odds).toFixed(2)}
+                    </div>
                 </div>
-                <button class="btn btn-link text-danger p-1" onclick="removeFromBetSlip(${index})">
+
+                <button class="btn btn-link text-danger p-1"
+                        onclick="removeFromBetSlip(${index})">
                     <i class="fas fa-times"></i>
                 </button>
             `;
-            container.appendChild(div);
-        });
-    }
 
-    // Calculate totals
-    let totalOdds = 1.0;
+            container.appendChild(div);
+
+        });
+
+    });
+
+    // =====================================================
+    // Calculate total odds
+    // =====================================================
+
+    let totalOdds = 1;
+
     betSlipSelections.forEach(function(sel) {
         totalOdds *= parseFloat(sel.odds) || 1;
     });
+
     totalOdds = Math.round(totalOdds * 100) / 100;
 
-    if (totalOddsEl) totalOddsEl.textContent = totalOdds.toFixed(2);
+    totalOddsEls.forEach(el => {
+        el.textContent = totalOdds.toFixed(2);
+    });
 
-    const betType = betSlipSelections.length > 1 ? 'Accumulator' : 'Single';
-    document.getElementById('betslipType') && (document.getElementById('betslipType').textContent = betType);
+    // =====================================================
+    // Bet type
+    // =====================================================
 
-    // Calculate potential on stake input
-    if (stakeInput) {
-        stakeInput.addEventListener('input', function() {
-            calculatePotential();
-        });
-        calculatePotential();
-    }
+    const betType = betSlipSelections.length > 1
+        ? 'Accumulator'
+        : 'Single';
+
+    document.querySelectorAll('#betslipType').forEach(el => {
+        el.textContent = betType;
+    });
+
+    // =====================================================
+    // Update potential win
+    // =====================================================
+
+    calculatePotential();
 }
 
 function calculatePotential() {
-    const stake = parseFloat(document.getElementById('betslipStake')?.value) || 0;
-    const totalOdds = parseFloat(document.getElementById('betslipTotalOdds')?.textContent) || 1;
-    const potential = stake * totalOdds;
-    const potentialEl = document.getElementById('betslipPotential');
-    if (potentialEl) {
-        potentialEl.textContent = potential.toFixed(2);
+
+    const stakeInputs = document.querySelectorAll('#betslipStake');
+    const totalOddsEls = document.querySelectorAll('#betslipTotalOdds');
+    const potentialEls = document.querySelectorAll('#betslipPotential');
+
+    // Get stake from whichever input has a value
+    let stake = 0;
+
+    stakeInputs.forEach(input => {
+        const value = parseFloat(input.value);
+        if (!isNaN(value)) {
+            stake = value;
+        }
+    });
+
+    // Keep both stake inputs synchronized
+    stakeInputs.forEach(input => {
+        input.value = stake || '';
+    });
+
+    // Total odds (same in both bet slips)
+    let totalOdds = 1;
+
+    if (totalOddsEls.length > 0) {
+        totalOdds = parseFloat(totalOddsEls[0].textContent) || 1;
     }
+
+    const potential = stake * totalOdds;
+
+    // Update both potential displays
+    potentialEls.forEach(el => {
+        el.textContent = 'KES ' + potential.toFixed(2);
+    });
+
     return potential;
 }
 
@@ -402,8 +501,37 @@ function initOddsSelection() {
 // PLACE BET
 // ===================================================================
 function placeBet() {
-    const stake = parseFloat(document.getElementById('betslipStake')?.value);
-    const useBonus = document.getElementById('betslipUseBonus')?.checked || false;
+
+    // Get all duplicated elements
+    const stakeInputs = document.querySelectorAll('#betslipStake');
+    const bonusChecks = document.querySelectorAll('#betslipUseBonus');
+    const placeBtns = document.querySelectorAll('#betslipPlaceBtn');
+
+    // Read stake from whichever input has a value
+    let stake = 0;
+
+    stakeInputs.forEach(input => {
+        const value = parseFloat(input.value);
+        if (!isNaN(value) && value > 0) {
+            stake = value;
+        }
+    });
+
+    // Keep both stake inputs synchronized
+    stakeInputs.forEach(input => {
+        if (input !== document.activeElement) {
+            input.value = stake || '';
+        }
+    });
+
+    // Read bonus checkbox
+    let useBonus = false;
+
+    bonusChecks.forEach(check => {
+        if (check.checked) {
+            useBonus = true;
+        }
+    });
 
     if (!stake || stake <= 0) {
         showToast('warning', 'Please enter a valid stake amount.');
@@ -433,13 +561,12 @@ function placeBet() {
         use_bonus: useBonus
     };
 
-    const btn = document.getElementById('betslipPlaceBtn');
-
-    if (btn) {
+    // Disable both Place Bet buttons
+    placeBtns.forEach(btn => {
         btn.disabled = true;
         btn.innerHTML =
             '<i class="fas fa-spinner fa-spin me-1"></i> Placing Bet...';
-    }
+    });
 
     fetch('/betting/place-bet', {
         method: 'POST',
@@ -458,6 +585,7 @@ function placeBet() {
         }
 
         return response.json();
+
     })
     .then(function(result) {
 
@@ -465,24 +593,19 @@ function placeBet() {
             throw result;
         }
 
-        // Success message
         showToast(
             'success',
             '✅ Bet placed successfully! Ref: ' + result.bet_reference
         );
 
-        // Disable placing another bet immediately
-        if (btn) {
+        placeBtns.forEach(btn => {
             btn.disabled = true;
-        }
+        });
 
-        // Wait a second before clearing
-        setTimeout(function () {
+        setTimeout(function() {
 
             clearBetSlip();
             closeBetSlip();
-
-            // Refresh wallet balance
             updateWalletDisplay();
 
         }, 1000);
@@ -497,17 +620,17 @@ function placeBet() {
             '❌ ' + (error.error || 'Failed to place bet. Please try again.')
         );
 
-        // Keep the bet slip intact so user can retry
     })
     .finally(function() {
 
-        if (btn) {
+        placeBtns.forEach(btn => {
             btn.disabled = false;
             btn.innerHTML =
                 '<i class="fas fa-check me-1"></i> Place Bet';
-        }
+        });
 
     });
+
 }
 
 // ===================================================================
