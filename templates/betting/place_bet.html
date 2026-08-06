@@ -1,310 +1,156 @@
 <!DOCTYPE html>
-
 <html lang="en">
-
 <head>
-
     <meta charset="UTF-8">
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>BETPRO — Place Bet</title>
-
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
     <link rel="stylesheet" href="{{ url_for('static', filename='css/betslip.css') }}">
-
     <style>
-
         body { margin: 0; font-family: system-ui, Arial, sans-serif; background: #14161f; color: #e8eaf0; }
-
         .page { padding: 24px; max-width: 1200px; margin: 0 auto; }
-
         .match-grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
-
         @media (min-width: 700px) { .match-grid { grid-template-columns: repeat(2, 1fr); } }
-
         .match-card { background: #232735; border: 1px solid #343948; border-radius: 10px; padding: 16px; }
-
         .match-name { font-weight: 700; margin-bottom: 10px; }
-
         .odds-row { display: flex; gap: 8px; }
-
         .csrf { display: none; }
-
     </style>
-
 </head>
-
 <body>
-
-
 
     <input type="hidden" id="betslipCsrf" value="{{ csrf_token() }}">
 
-
-
     <button type="button" id="betslipFloatBtn" class="betslip-float-btn">
-
         <i class="fas fa-list-ol"></i> My Bet Slip
-
         <span class="betslip-count">0</span>
-
     </button>
 
-
-
     <main class="page">
-
         <h1>Place Your Bet</h1>
-
         <div class="match-grid">
 
-
-
             <article class="match-card">
-
                 <div class="match-name">Barcelona vs Real Madrid</div>
-
                 <div class="odds-row">
-
                     <button class="team-odds" data-match-id="2001"
-
                         data-match-name="Barcelona vs Real Madrid"
-
                         data-selection="1" data-selection-label="Home Win"
-
                         data-odds="2.05">Home 2.05</button>
-
                     <button class="team-odds" data-match-id="2001"
-
                         data-match-name="Barcelona vs Real Madrid"
-
                         data-selection="X" data-selection-label="Draw"
-
                         data-odds="3.30">Draw 3.30</button>
-
                     <button class="team-odds" data-match-id="2001"
-
                         data-match-name="Barcelona vs Real Madrid"
-
                         data-selection="2" data-selection-label="Away Win"
-
                         data-odds="3.75">Away 3.75</button>
-
                 </div>
-
             </article>
-
-
 
             <article class="match-card">
-
                 <div class="match-name">Bayern vs Dortmund</div>
-
                 <div class="odds-row">
-
                     <button class="team-odds" data-match-id="2002"
-
                         data-match-name="Bayern vs Dortmund"
-
                         data-selection="1" data-selection-label="Home Win"
-
                         data-odds="1.90">Home 1.90</button>
-
                     <button class="team-odds" data-match-id="2002"
-
                         data-match-name="Bayern vs Dortmund"
-
                         data-selection="X" data-selection-label="Draw"
-
                         data-odds="3.60">Draw 3.60</button>
-
                     <button class="team-odds" data-match-id="2002"
-
                         data-match-name="Bayern vs Dortmund"
-
                         data-selection="2" data-selection-label="Away Win"
-
                         data-odds="4.20">Away 4.20</button>
-
                 </div>
-
             </article>
-
-
 
         </div>
-
     </main>
-
-
 
     <div id="betslipOverlay" class="betslip-overlay"></div>
 
-
-
     <aside id="betslipPanel" class="betslip-panel" aria-hidden="true">
 
-
-
         <header class="betslip-header">
-
             <h2><i class="fas fa-list-ol"></i> Bet Slip <span class="betslip-count">0</span></h2>
-
             <div class="betslip-actions">
-
                 <button type="button" class="betslip-icon-btn betslip-clear-all">
-
                     <i class="fas fa-trash"></i> Clear
-
                 </button>
-
                 <button type="button" class="betslip-icon-btn betslip-close">
-
                     <i class="fas fa-times"></i>
-
                 </button>
-
             </div>
-
         </header>
 
-
-
         <div class="betslip-empty" style="display:flex;">
-
             <i class="fas fa-clipboard-list"></i>
-
             <p>Your bet slip is empty.<br>Tap an odds button to add a selection.</p>
-
         </div>
-
-
 
         <div class="betslip-body">
-
             <div class="betslip-selections"></div>
-
         </div>
-
-
 
         <div class="betslip-summary">
-
             <div class="row">
-
                 <span>Selections</span>
-
                 <strong class="betslip-count-2">0</strong>
-
             </div>
-
             <div class="row">
-
                 <span>Total Odds</span>
-
                 <strong class="betslip-total-odds">0.00</strong>
-
             </div>
-
         </div>
-
-
 
         <div class="betslip-stake-block">
-
             <div class="betslip-stake-label">
-
                 <span>Your Stake (KES)</span>
-
                 <span>Potential Win: <strong class="betslip-potential">KES 0.00</strong></span>
-
             </div>
-
             <input type="number" class="betslip-stake" min="0" step="50" placeholder="Enter stake">
-
             <div class="betslip-bonus">
-
                 <input type="checkbox" id="useBonus" class="betslip-use-bonus">
-
                 <label for="useBonus">Use my bonus</label>
-
             </div>
-
             <div class="betslip-quick-stakes">
-
                 <button data-stake="100">KES 100</button>
-
                 <button data-stake="200">KES 200</button>
-
                 <button data-stake="500">KES 500</button>
-
                 <button data-stake="1000">KES 1K</button>
-
             </div>
-
             <p class="betslip-hint">Minimum stake is KES 10</p>
-
         </div>
 
-
-
         <footer class="betslip-footer">
-
             <button type="button" class="betslip-place-btn" disabled>
-
                 Place Bet
-
             </button>
-
             <button type="button" class="betslip-clear">
-
                 Clear All
-
             </button>
-
         </footer>
 
-
-
         <div class="betslip-toast"></div>
-
     </aside>
 
-
-
     <template id="betslipCardTemplate">
-
         <article class="betslip-card">
-
             <div class="betslip-card-main">
-
                 <div class="betslip-card-match"></div>
-
                 <div class="betslip-card-market">
-
                     <span class="market-key"></span>
-
                     <span class="market-odds"></span>
-
                 </div>
-
             </div>
-
             <button type="button" class="betslip-card-remove">
-
                 <i class="fas fa-times"></i>
-
             </button>
-
         </article>
-
     </template>
 
-
-    
-    
+    <script src="{{ url_for('static', filename='js/betslip.js') }}"></script>
 </body>
-
 </html>

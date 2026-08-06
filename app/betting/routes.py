@@ -38,42 +38,67 @@ def index():
 @suspended_check
 def place_bet():
     """Place a bet via AJAX."""
+    import traceback
+
     try:
-        data = request.get_json()
+        data = request.get_json(silent=True)
+
+        print("\n========== PLACE BET REQUEST ==========")
+        print(data)
+        print("=======================================\n")
+
         if not data:
-            return jsonify({'success': False, 'error': 'Invalid request data'}), 400
+            return jsonify({
+                "success": False,
+                "error": "Invalid request data"
+            }), 400
 
-        selections = data.get('selections', [])
-        stake = float(data.get('stake', 0))
-        use_bonus = data.get('use_bonus', False)
+        selections = data.get("selections", [])
+        stake = float(data.get("stake", 0))
+        use_bonus = bool(data.get("use_bonus", False))
 
-        if not selections or stake <= 0:
-            return jsonify({'success': False, 'error': 'Invalid selections or stake'}), 400
+        if not selections:
+            return jsonify({
+                "success": False,
+                "error": "No selections provided"
+            }), 400
 
-        success, result = BettingService.place_bet(current_user, selections, stake, use_bonus)
+        if stake <= 0:
+            return jsonify({
+                "success": False,
+                "error": "Invalid stake amount"
+            }), 400
+
+        success, result = BettingService.place_bet(
+            current_user,
+            selections,
+            stake,
+            use_bonus
+        )
 
         if success:
             bet = result
+
             return jsonify({
-                'success': True,
-                'bet_reference': bet.bet_reference,
-                'total_odds': bet.total_odds,
-                'potential_winnings': bet.potential_winnings,
-                'message': f'Bet placed successfully! Reference: {bet.bet_reference}'
+                "success": True,
+                "bet_reference": bet.bet_reference,
+                "total_odds": bet.total_odds,
+                "potential_winnings": bet.potential_winnings,
+                "message": f"Bet placed successfully! Reference: {bet.bet_reference}"
             })
-        else:
-            return jsonify({'success': False, 'error': result}), 400
+
+        return jsonify({
+            "success": False,
+            "error": result
+        }), 400
 
     except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
+        traceback.print_exc()
 
-
-@betting_bp.route('/bet-slip')
-@login_required
-def bet_slip():
-    """View current bet slip."""
-    return render_template('betting/bet_slip.html')
-
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        }), 500
 
 @betting_bp.route('/history')
 @login_required

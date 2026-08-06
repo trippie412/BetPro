@@ -1,0 +1,139 @@
+:root {
+    --bp: #ffc107; --bd: #1b1e28; --bc: #232735;
+    --bb: #343948; --bt: #e8eaf0; --bm: #9aa1b3;
+    --ok: #28a745; --err: #dc3545;
+}
+body.betslip-locked { overflow: hidden; }
+
+.betslip-float-btn {
+    position: fixed; bottom: 20px; right: 20px; z-index: 1000;
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--bp); color: var(--bd); border: none;
+    border-radius: 50px; padding: 12px 18px; font-weight: 700;
+    cursor: pointer; box-shadow: 0 6px 18px rgba(0,0,0,.35);
+}
+.betslip-float-btn .betslip-count {
+    background: #fff; color: var(--bd); border-radius: 50%;
+    min-width: 22px; height: 22px; display: inline-flex;
+    align-items: center; justify-content: center; font-size: 13px; font-weight: 800;
+}
+
+.betslip-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,.55);
+    opacity: 0; visibility: hidden; transition: .25s; z-index: 999;
+}
+.betslip-overlay.show { opacity: 1; visibility: visible; }
+
+.betslip-panel {
+    position: fixed; top: 0; right: -420px; width: 400px; max-width: 100vw;
+    height: 100vh; background: var(--bd); color: var(--bt); z-index: 1000;
+    display: flex; flex-direction: column; transition: right .25s ease;
+    box-shadow: -6px 0 24px rgba(0,0,0,.4);
+}
+.betslip-panel.open { right: 0; }
+
+.betslip-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 18px; border-bottom: 1px solid var(--bb); background: var(--bc);
+}
+.betslip-header h2 { margin: 0; font-size: 18px; display: flex; align-items: center; gap: 8px; }
+.betslip-header .betslip-count {
+    background: var(--bp); color: var(--bd); border-radius: 50%;
+    min-width: 24px; height: 24px; display: inline-flex; align-items: center;
+    justify-content: center; font-size: 14px; font-weight: 800;
+}
+.betslip-actions { display: flex; gap: 8px; align-items: center; }
+.betslip-icon-btn {
+    background: transparent; border: 1px solid var(--bb); color: var(--bm);
+    border-radius: 6px; padding: 6px 10px; cursor: pointer; font-size: 13px;
+}
+.betslip-icon-btn:hover { color: var(--bt); border-color: var(--bm); }
+
+.betslip-body { flex: 1; overflow-y: auto; padding: 16px 18px; display: none; }
+.betslip-empty {
+    flex: 1; display: flex; flex-direction: column; align-items: center;
+    justify-content: center; gap: 10px; color: var(--bm); padding: 40px; text-align: center;
+}
+.betslip-empty i { font-size: 42px; opacity: .4; }
+.betslip-selections { display: flex; flex-direction: column; gap: 12px; }
+
+.betslip-card {
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--bc); border: 1px solid var(--bb); border-radius: 10px;
+    padding: 12px 14px; gap: 10px;
+}
+.betslip-card-main { flex: 1; min-width: 0; }
+.betslip-card-match {
+    font-weight: 600; font-size: 14px; margin-bottom: 4px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.betslip-card-market { display: flex; justify-content: space-between; font-size: 13px; color: var(--bm); }
+.betslip-card-market .market-odds { color: var(--bp); font-weight: 700; }
+.betslip-card-remove { background: transparent; border: none; color: var(--bm); cursor: pointer; font-size: 16px; padding: 4px; }
+.betslip-card-remove:hover { color: var(--err); }
+
+.betslip-summary {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 14px 18px; border-top: 1px solid var(--bb); background: var(--bc);
+}
+.betslip-summary .row span { display: block; color: var(--bm); font-size: 12px; text-transform: uppercase; letter-spacing: .5px; }
+.betslip-summary .row strong { font-size: 18px; }
+
+.betslip-stake-block { padding: 14px 18px; background: var(--bc); border-top: 1px solid var(--bb); }
+.betslip-stake-label {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 8px; font-size: 13px; color: var(--bm);
+}
+.betslip-potential { color: var(--ok); font-weight: 800; font-size: 15px; }
+.betslip-stake {
+    width: 100%; padding: 12px 14px; background: var(--bd);
+    border: 1px solid var(--bb); border-radius: 8px; color: var(--bt);
+    font-size: 18px; font-weight: 700;
+}
+.betslip-stake:focus { outline: none; border-color: var(--bp); }
+.betslip-bonus { display: flex; align-items: center; gap: 8px; margin-top: 10px; font-size: 13px; color: var(--bm); }
+.betslip-quick-stakes { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+.betslip-quick-stakes button {
+    flex: 1; min-width: 60px; padding: 8px; background: var(--bd);
+    border: 1px solid var(--bb); border-radius: 6px; color: var(--bt); cursor: pointer; font-weight: 600;
+}
+.betslip-quick-stakes button:hover { border-color: var(--bp); color: var(--bp); }
+.betslip-hint { font-size: 12px; color: var(--bm); margin-top: 8px; }
+.betslip-hint.error { color: var(--err); }
+
+.betslip-footer {
+    display: none; padding: 16px 18px; border-top: 1px solid var(--bb);
+    background: var(--bc); flex-direction: column; gap: 10px;
+}
+.betslip-place-btn {
+    width: 100%; padding: 14px; border: none; border-radius: 8px;
+    background: var(--bp); color: var(--bd); font-size: 16px; font-weight: 800; cursor: pointer;
+}
+.betslip-place-btn:disabled { opacity: .5; cursor: not-allowed; }
+.betslip-place-btn.loading { opacity: .7; cursor: progress; }
+.betslip-clear {
+    width: 100%; padding: 10px; background: transparent; border: 1px solid var(--bb);
+    border-radius: 8px; color: var(--bm); cursor: pointer; font-size: 14px;
+}
+
+.betslip-toast {
+    position: absolute; left: 50%; bottom: 16px; transform: translateX(-50%);
+    background: var(--bc); border: 1px solid var(--bb); border-left: 4px solid var(--bp);
+    color: var(--bt); padding: 12px 18px; border-radius: 8px;
+    opacity: 0; visibility: hidden; transition: .25s; max-width: 90%; font-size: 14px; z-index: 1001;
+}
+.betslip-toast.show { opacity: 1; visibility: visible; }
+.betslip-toast.success { border-left-color: var(--ok); }
+.betslip-toast.error { border-left-color: var(--err); }
+
+.team-odds {
+    padding: 8px 14px; border-radius: 8px; border: 1px solid var(--bb);
+    background: var(--bc); color: var(--bt); font-weight: 700; cursor: pointer;
+}
+.team-odds.btn-outline-warning { border-color: var(--bp); color: var(--bp); }
+.team-odds.btn-warning, .team-odds.selected { background: var(--bp); border-color: var(--bp); color: var(--bd); }
+
+@media (min-width: 993px) {
+    .betslip-panel { right: 0; width: 380px; }
+    .betslip-float-btn, .betslip-overlay { display: none; }
+}
