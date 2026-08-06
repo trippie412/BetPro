@@ -203,10 +203,12 @@
 
 </div>
 
+<!-- Floating Mobile Bet Slip Button -->
 <button
     id="betslipFloatingBtn"
-    class="floating-betslip-btn"
-    onclick="toggleBetSlip()">
+    class="floating-betslip-btn d-lg-none"
+    type="button"
+    onclick="openBetSlip()">
 
     <i class="fas fa-receipt"></i>
 
@@ -220,46 +222,23 @@
 
 </button>
 
+<!-- Mobile Bet Slip Offcanvas -->
+<div
+    class="offcanvas offcanvas-bottom d-lg-none"
+    tabindex="-1"
+    id="betslipOffcanvas"
+    aria-labelledby="betslipOffcanvasLabel"
+    style="height:85vh;">
+
+    <div class="offcanvas-body p-0">
+
+        {% include "betting/bet_slip.html" %}
+
+    </div>
+
+</div>
+
 {% endblock %}
 
 {% block extra_js %}
-
-<script>
-
-document.addEventListener("DOMContentLoaded",()=>{
-
-    function syncCounts(){
-
-        let count=0;
-
-        try{
-
-            const saved=sessionStorage.getItem("betpro_betslip");
-
-            if(saved){
-
-                count=JSON.parse(saved).length;
-
-            }
-
-        }catch(e){}
-
-        const header=document.getElementById("betslipCountHeader");
-
-        const floating=document.getElementById("betslipFloatingCount");
-
-        if(header) header.textContent=count;
-
-        if(floating) floating.textContent=count;
-
-    }
-
-    syncCounts();
-
-    setInterval(syncCounts,1000);
-
-});
-
-</script>
-
 {% endblock %}
