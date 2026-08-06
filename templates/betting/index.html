@@ -169,13 +169,22 @@
 // Open mobile bet slip
 // =============================
 function openMobileBetSlip() {
+
     const offcanvasEl = document.getElementById('betslipOffcanvas');
 
-    if (!offcanvasEl || typeof bootstrap === 'undefined') return;
+    if (!offcanvasEl) {
+        console.error('betslipOffcanvas not found');
+        return;
+    }
 
-    bootstrap.Offcanvas
-        .getOrCreateInstance(offcanvasEl)
-        .show();
+    if (typeof bootstrap === 'undefined') {
+        console.error('Bootstrap JS not loaded');
+        return;
+    }
+
+    const instance = bootstrap.Offcanvas.getOrCreateInstance(offcanvasEl);
+
+    instance.show();
 }
 
 document.addEventListener('DOMContentLoaded', function () {
