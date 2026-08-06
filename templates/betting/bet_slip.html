@@ -1,17 +1,15 @@
-<!-- =========================
-     BetPro Responsive Bet Slip
-========================== -->
-
 <div id="betslipPanelInline" class="betslip-panel">
 
-    <!-- Header -->
+    <!-- ========================= -->
+    <!-- HEADER -->
+    <!-- ========================= -->
     <div class="betslip-header d-flex justify-content-between align-items-center">
 
         <div>
             <h5 class="fw-bold mb-0">
-                <i class="fas fa-receipt text-gold me-2"></i>
+                <i class="fas fa-receipt text-warning me-2"></i>
                 Bet Slip
-                <span class="badge bg-warning text-dark ms-2" id="betslipCount">0</span>
+                <span id="betslipCount" class="badge bg-warning text-dark ms-2">0</span>
             </h5>
 
             <small class="text-muted">
@@ -30,7 +28,10 @@
 
     </div>
 
-    <!-- Empty State -->
+
+    <!-- ========================= -->
+    <!-- EMPTY STATE -->
+    <!-- ========================= -->
     <div
         id="betslipEmpty"
         class="betslip-empty text-center">
@@ -41,13 +42,16 @@
             Your Bet Slip is Empty
         </h6>
 
-        <p class="text-muted small mb-0">
-            Click on any odds to add a selection.
+        <p class="text-muted mb-0">
+            Tap any odds to add a selection.
         </p>
 
     </div>
 
-    <!-- Selections -->
+
+    <!-- ========================= -->
+    <!-- SELECTIONS -->
+    <!-- ========================= -->
     <div
         id="betslipSelectionsArea"
         class="betslip-body"
@@ -57,109 +61,62 @@
 
     </div>
 
-    <!-- Footer -->
+
+    <!-- ========================= -->
+    <!-- FOOTER -->
+    <!-- ========================= -->
     <div
         id="betslipFooter"
         class="betslip-footer"
         style="display:none;">
 
-        <!-- Bet Type -->
-
         <div class="d-flex justify-content-between mb-2">
-
-            <span class="text-muted">
-
-                Bet Type
-
-            </span>
-
-            <strong id="betslipType">
-
-                Single
-
-            </strong>
-
+            <span class="text-muted">Bet Type</span>
+            <strong id="betslipType">Single</strong>
         </div>
 
-        <!-- Selection Count -->
-
         <div class="d-flex justify-content-between mb-2">
-
-            <span class="text-muted">
-
-                Selections
-
-            </span>
-
-            <strong id="betslipCount2">
-
-                0
-
-            </strong>
-
+            <span class="text-muted">Selections</span>
+            <strong id="betslipCount2">0</strong>
         </div>
-
-        <!-- Odds -->
 
         <div class="d-flex justify-content-between mb-3">
-
-            <span class="text-muted">
-
-                Total Odds
-
-            </span>
-
+            <span class="text-muted">Total Odds</span>
             <strong
-                class="text-warning"
-                id="betslipTotalOdds">
-
+                id="betslipTotalOdds"
+                class="text-warning">
                 0.00
-
             </strong>
-
         </div>
-
-        <!-- Stake -->
 
         <div class="mb-3">
 
-            <label
-                class="form-label">
-
+            <label class="form-label">
                 Stake (KES)
-
             </label>
 
             <input
                 id="betslipStake"
                 type="number"
                 class="form-control"
-                placeholder="Minimum 10"
                 min="10"
-                step="10">
+                step="10"
+                placeholder="Minimum 10"
+                oninput="calculatePotential()">
 
         </div>
 
-        <!-- Potential Win -->
-
-        <div
-            class="alert alert-success d-flex justify-content-between align-items-center">
+        <div class="alert alert-success d-flex justify-content-between align-items-center">
 
             <span>
-
                 Potential Win
-
             </span>
 
             <strong id="betslipPotential">
-
                 KES 0.00
-
             </strong>
 
         </div>
-
-        <!-- Bonus -->
 
         <div class="form-check mb-3">
 
@@ -178,10 +135,9 @@
 
         </div>
 
-        <!-- Place Bet -->
-
         <button
             id="betslipPlaceBtn"
+            type="button"
             class="btn btn-warning w-100 fw-bold mb-2"
             onclick="placeBet()">
 
@@ -191,10 +147,9 @@
 
         </button>
 
-        <!-- Clear -->
-
         <button
             id="betslipClear"
+            type="button"
             class="btn btn-outline-danger w-100"
             onclick="clearBetSlip()">
 
