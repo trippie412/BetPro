@@ -630,6 +630,102 @@ def edit_match(match_id):
 
     return render_template('admin/match_form.html', form=form, match=match, edit=True)
 
+@admin_bp.route('/matches/bulk-update-date', methods=['POST'])
+@login_required
+@admin_required
+def bulk_update_match_date():
+    """Bulk update the date of selected matches."""
+
+    data = request.get_json(silent=True)
+
+    print("=" * 60)
+    print("Received JSON:", data)
+    print("=" * 60)
+
+    if data is None:
+        return jsonify({
+            "success": False,
+            "message": "No JSON data received."
+        }), 400
+
+    match_ids = data.get("match_ids")
+    new_date = data.get("date")
+    keep_time = data.get("keep_time", True)
+    new_time = data.get("time")
+
+    print("Match IDs:", match_ids)
+    print("Date:", new_date)
+    print("Keep Time:", keep_time)
+    print("Time:", new_time)
+
+    if not isinstance(match_ids, list) or len(match_ids) == 0:
+        return jsonify({
+            "success": False,
+            "message": "No matches selected."
+        }), 400
+
+    if not new_date:
+        return jsonify({
+            "success": False,
+            "message": "Please select a date."
+        }), 400
+
+    try:
+
+        matches = Match.query.filter(Match.id.in_(match_ids)).all()
+
+        if not matches:
+            return jsonify({
+                "success": False,
+                "message": "No matching matches were found."
+            }), 404
+
+        updated = 0
+
+        for match in matches:
+
+            # Determine the time to use
+            if keep_time and match.match_date:
+
+                hour = match.match_date.hour
+                minute = match.match_date.minute
+
+            elif new_time:
+
+                hour, minute = map(int, new_time.split(":"))
+
+            else:
+
+                hour = 0
+                minute = 0
+
+            match.match_date = datetime.strptime(
+                f"{new_date} {hour:02d}:{minute:02d}",
+                "%Y-%m-%d %H:%M"
+            )
+
+            updated += 1
+
+        db.session.commit()
+
+        print(f"Updated {updated} matches.")
+
+        return jsonify({
+            "success": True,
+            "updated": updated,
+            "message": f"{updated} matches updated successfully."
+        })
+
+    except Exception as e:
+
+        db.session.rollback()
+
+        print("Bulk update error:", str(e))
+
+        return jsonify({
+            "success": False,
+            "message": str(e)
+        }), 500
 
 @admin_bp.route('/matches/<int:match_id>/odds', methods=['GET', 'POST'])
 @login_required

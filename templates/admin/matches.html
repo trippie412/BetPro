@@ -8,10 +8,28 @@
 
 {% block content %}
 <div class="page-header">
-    <h4><i class="fas fa-futbol me-2 text-primary"></i>Match Management</h4>
-    <a href="{{ url_for('admin.create_match') }}" class="btn btn-primary">
-        <i class="fas fa-plus me-1"></i>Create Match
-    </a>
+    <h4>
+        <i class="fas fa-futbol me-2 text-primary"></i>
+        Match Management
+    </h4>
+
+    <div class="d-flex gap-2">
+
+        <button
+            type="button"
+            id="toggleSelectionBtn"
+            class="btn btn-outline-secondary">
+            <i class="fas fa-check-square me-1"></i>
+            Select
+        </button>
+
+        <a href="{{ url_for('admin.create_match') }}"
+           class="btn btn-primary">
+            <i class="fas fa-plus me-1"></i>
+            Create Match
+        </a>
+
+    </div>
 </div>
 
 <div class="filter-bar">
@@ -36,11 +54,151 @@
     </form>
 </div>
 
-<div class="table-container">
+<!-- Bulk Selection Toolbar -->
+<div id="selectionInfo" class="alert alert-primary d-none mb-3 shadow-sm border-0">
+
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+
+        <!-- Selected Count -->
+        <div>
+            <h6 class="mb-0 fw-bold">
+                <i class="fas fa-check-circle me-2 text-success"></i>
+                <span id="selectedCount">0</span> Match(es) Selected
+            </h6>
+
+            <small class="text-muted">
+                Apply actions to all selected matches.
+            </small>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+
+            <!-- Update Date -->
+            <button
+                type="button"
+                class="btn btn-success btn-sm"
+                id="bulkDateBtn">
+
+                <i class="fas fa-calendar-alt me-1"></i>
+                Update Date
+
+            </button>
+
+            <!-- Bulk Actions -->
+            <div class="dropdown">
+
+                <button
+                    class="btn btn-primary btn-sm dropdown-toggle"
+                    type="button"
+                    id="bulkActionsDropdown"
+                    data-bs-toggle="dropdown"
+                    aria-expanded="false">
+
+                    <i class="fas fa-layer-group me-1"></i>
+                    Bulk Actions
+
+                </button>
+
+                <ul class="dropdown-menu dropdown-menu-end">
+
+                    <li>
+                        <a class="dropdown-item" href="#" id="bulkScheduled">
+                            <i class="fas fa-clock text-primary me-2"></i>
+                            Mark Scheduled
+                        </a>
+                    </li>
+
+                    <li>
+                        <a class="dropdown-item" href="#" id="bulkLive">
+                            <i class="fas fa-broadcast-tower text-danger me-2"></i>
+                            Mark Live
+                        </a>
+                    </li>
+
+                    <li>
+                        <a class="dropdown-item" href="#" id="bulkFinished">
+                            <i class="fas fa-flag-checkered text-success me-2"></i>
+                            Mark Finished
+                        </a>
+                    </li>
+
+                    <li>
+                        <a class="dropdown-item" href="#" id="bulkPostponed">
+                            <i class="fas fa-pause-circle text-warning me-2"></i>
+                            Mark Postponed
+                        </a>
+                    </li>
+
+                    <li>
+                        <a class="dropdown-item" href="#" id="bulkCancelled">
+                            <i class="fas fa-ban text-dark me-2"></i>
+                            Mark Cancelled
+                        </a>
+                    </li>
+
+                    <li><hr class="dropdown-divider"></li>
+
+                    <li>
+                        <a class="dropdown-item" href="#" id="bulkFeature">
+                            <i class="fas fa-star text-warning me-2"></i>
+                            Feature Selected
+                        </a>
+                    </li>
+
+                    <li>
+                        <a class="dropdown-item" href="#" id="bulkUnfeature">
+                            <i class="far fa-star me-2"></i>
+                            Remove Featured
+                        </a>
+                    </li>
+
+                    <li><hr class="dropdown-divider"></li>
+
+                    <li>
+                        <a class="dropdown-item text-danger" href="#" id="bulkDelete">
+                            <i class="fas fa-trash me-2"></i>
+                            Delete Selected
+                        </a>
+                    </li>
+
+                </ul>
+
+            </div>
+
+            <!-- Cancel -->
+            <button
+                type="button"
+                class="btn btn-outline-secondary btn-sm"
+                id="cancelSelectionBtn">
+
+                <i class="fas fa-times me-1"></i>
+                Cancel
+
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
     <div class="table-responsive">
+
         <table class="table table-hover datatable">
+
             <thead>
+
                 <tr>
+
+                    <!-- Selection Column -->
+                    <th class="selection-column d-none" style="width:40px;">
+                        <input
+                            type="checkbox"
+                            id="selectAllMatches"
+                            class="form-check-input">
+                    </th>
+
                     <th>ID</th>
                     <th>Match</th>
                     <th>Sport / League</th>
@@ -49,93 +207,223 @@
                     <th>Status</th>
                     <th>Featured</th>
                     <th>Actions</th>
+
                 </tr>
+
             </thead>
+
             <tbody>
+
                 {% for match in matches.items %}
+
                 <tr>
-                    <td><small>#{{ match.id }}</small></td>
-                    <td>
-                        <strong>{{ match.home_team }}</strong> vs <strong>{{ match.away_team }}</strong>
+
+                    <!-- Selection Checkbox -->
+                    <td class="selection-column d-none">
+
+                        <input
+                            type="checkbox"
+                            class="form-check-input match-checkbox"
+                            value="{{ match.id }}">
+
                     </td>
+
+                    <td>
+                        <small>#{{ match.id }}</small>
+                    </td>
+
+                    <td>
+                        <strong>{{ match.home_team }}</strong>
+                        vs
+                        <strong>{{ match.away_team }}</strong>
+                    </td>
+
                     <td>
                         <small>{{ match.sport.name }} / {{ match.league.name }}</small>
                     </td>
-                    <td><small>{{ match.match_date.strftime('%d %b %Y %H:%M') }}</small></td>
+
                     <td>
+                        <small>{{ match.match_date.strftime('%d %b %Y %H:%M') }}</small>
+                    </td>
+
+                    <td>
+
                         {% if match.home_score is not none %}
+
                         <strong>{{ match.home_score }} - {{ match.away_score }}</strong>
+
                         {% else %}
+
                         <span class="text-muted">-</span>
+
                         {% endif %}
+
                     </td>
+
                     <td>
+
                         {% if match.status == 'live' %}
-                        <span class="badge bg-danger">LIVE</span>
+                            <span class="badge bg-danger">LIVE</span>
+
                         {% elif match.status == 'scheduled' %}
-                        <span class="badge bg-primary">Scheduled</span>
+                            <span class="badge bg-primary">Scheduled</span>
+
                         {% elif match.status == 'finished' %}
-                        <span class="badge bg-secondary">Finished</span>
+                            <span class="badge bg-secondary">Finished</span>
+
                         {% elif match.status == 'postponed' %}
-                        <span class="badge bg-warning text-dark">Postponed</span>
+                            <span class="badge bg-warning text-dark">Postponed</span>
+
                         {% elif match.status == 'cancelled' %}
-                        <span class="badge bg-dark">Cancelled</span>
+                            <span class="badge bg-dark">Cancelled</span>
+
                         {% endif %}
+
                     </td>
+
                     <td>
+
                         {% if match.is_featured %}
-                        <span class="badge bg-warning text-dark"><i class="fas fa-star"></i></span>
+                            <span class="badge bg-warning text-dark">
+                                <i class="fas fa-star"></i>
+                            </span>
                         {% else %}
-                        <span class="text-muted">-</span>
+                            <span class="text-muted">-</span>
                         {% endif %}
+
                     </td>
+
                     <td>
+
                         <div class="btn-group-action">
-                            <a href="{{ url_for('admin.edit_match', match_id=match.id) }}" class="btn btn-sm btn-outline-primary" title="Edit">
+
+                            <!-- Edit -->
+                            <a href="{{ url_for('admin.edit_match', match_id=match.id) }}"
+                               class="btn btn-sm btn-outline-primary"
+                               title="Edit">
+
                                 <i class="fas fa-edit"></i>
+
                             </a>
-                            <a href="{{ url_for('admin.edit_odds', match_id=match.id) }}" class="btn btn-sm btn-outline-info" title="Odds">
+
+                            <!-- Odds -->
+                            <a href="{{ url_for('admin.edit_odds', match_id=match.id) }}"
+                               class="btn btn-sm btn-outline-info"
+                               title="Odds">
+
                                 <i class="fas fa-percentage"></i>
+
                             </a>
+
+                            <!-- Finish -->
                             {% if match.is_live or match.status == 'live' %}
-                            <form method="POST" action="{{ url_for('admin.finish_match', match_id=match.id) }}" class="d-inline">
-                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                <button type="button" class="btn btn-sm btn-outline-success" title="Finish Match"
-                                        onclick="showFinishModal({{ match.id }}, '{{ match.home_team }}', '{{ match.away_team }}', '{{ match.home_score or '' }}', '{{ match.away_score or '' }}')">
+
+                            <form
+                                method="POST"
+                                action="{{ url_for('admin.finish_match', match_id=match.id) }}"
+                                class="d-inline">
+
+                                <input
+                                    type="hidden"
+                                    name="csrf_token"
+                                    value="{{ csrf_token() }}">
+
+                                <button
+                                    type="button"
+                                    class="btn btn-sm btn-outline-success"
+                                    title="Finish Match"
+                                    onclick="showFinishModal(
+                                        {{ match.id }},
+                                        '{{ match.home_team }}',
+                                        '{{ match.away_team }}',
+                                        '{{ match.home_score or '' }}',
+                                        '{{ match.away_score or '' }}'
+                                    )">
+
                                     <i class="fas fa-flag-checkered"></i>
+
                                 </button>
+
                             </form>
+
                             {% endif %}
-                            <form method="POST" action="{{ url_for('admin.toggle_feature_match', match_id=match.id) }}" class="d-inline">
-                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                <button class="btn btn-sm btn-outline-warning" title="Toggle Featured"
-                                        onclick="return confirm('Toggle featured status?')">
+
+                            <!-- Feature -->
+                            <form
+                                method="POST"
+                                action="{{ url_for('admin.toggle_feature_match', match_id=match.id) }}"
+                                class="d-inline">
+
+                                <input
+                                    type="hidden"
+                                    name="csrf_token"
+                                    value="{{ csrf_token() }}">
+
+                                <button
+                                    class="btn btn-sm btn-outline-warning"
+                                    title="Toggle Featured"
+                                    onclick="return confirm('Toggle featured status?')">
+
                                     <i class="fas fa-star{{ '' if match.is_featured else '-o' }}"></i>
+
                                 </button>
+
                             </form>
+
+                            <!-- Live -->
                             {% if not match.is_live and match.status != 'finished' %}
-                            <form method="POST" action="{{ url_for('admin.mark_match_live', match_id=match.id) }}" class="d-inline">
-                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                <button class="btn btn-sm btn-outline-danger" title="Mark Live"
-                                        onclick="return confirm('Mark this match as LIVE?')">
+
+                            <form
+                                method="POST"
+                                action="{{ url_for('admin.mark_match_live', match_id=match.id) }}"
+                                class="d-inline">
+
+                                <input
+                                    type="hidden"
+                                    name="csrf_token"
+                                    value="{{ csrf_token() }}">
+
+                                <button
+                                    class="btn btn-sm btn-outline-danger"
+                                    title="Mark Live"
+                                    onclick="return confirm('Mark this match as LIVE?')">
+
                                     <i class="fas fa-broadcast-tower"></i>
+
                                 </button>
+
                             </form>
+
                             {% endif %}
+
                         </div>
+
                     </td>
+
                 </tr>
+
                 {% else %}
+
                 <tr>
-                    <td colspan="8" class="text-center text-muted py-4">
+
+                    <td colspan="9" class="text-center text-muted py-4">
+
                         <i class="fas fa-futbol fa-2x mb-2 d-block opacity-25"></i>
+
                         No matches found
+
                     </td>
+
                 </tr>
+
                 {% endfor %}
+
             </tbody>
+
         </table>
+
     </div>
+
 </div>
 
 <!-- Pagination -->
@@ -186,18 +474,403 @@
         </div>
     </div>
 </div>
+
+<!-- Bulk Update Date Modal -->
+<div class="modal fade"
+     id="bulkDateModal"
+     tabindex="-1"
+     aria-hidden="true">
+
+    <div class="modal-dialog modal-dialog-centered">
+
+        <div class="modal-content">
+
+            <div class="modal-header">
+
+                <h5 class="modal-title">
+                    <i class="fas fa-calendar-alt text-success me-2"></i>
+                    Bulk Update Match Date
+                </h5>
+
+                <button
+                    type="button"
+                    class="btn-close"
+                    data-bs-dismiss="modal">
+                </button>
+
+            </div>
+
+            <form id="bulkDateForm" method="POST">
+
+                <input type="hidden"
+                       name="csrf_token"
+                       value="{{ csrf_token() }}">
+
+                <div class="modal-body">
+
+                    <div class="alert alert-info">
+
+                        Updating
+
+                        <strong>
+                            <span id="bulkDateCount">0</span>
+                        </strong>
+
+                        selected matches.
+
+                    </div>
+
+                    <div class="mb-3">
+
+                        <label class="form-label">
+                            New Match Date
+                        </label>
+
+                        <input
+                            type="date"
+                            class="form-control"
+                            id="bulkMatchDate"
+                            required>
+
+                    </div>
+
+                    <div class="form-check">
+
+                        <input
+                            class="form-check-input"
+                            type="checkbox"
+                            id="keepTime"
+                            checked>
+
+                        <label class="form-check-label">
+
+                            Keep existing kickoff times
+
+                        </label>
+
+                    </div>
+
+                    <div
+                        id="newTimeContainer"
+                        class="mt-3 d-none">
+
+                        <label class="form-label">
+
+                            New Kickoff Time
+
+                        </label>
+
+                        <input
+                            type="time"
+                            class="form-control"
+                            id="bulkMatchTime">
+
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+
+                    <button
+                        type="button"
+                        class="btn btn-secondary"
+                        data-bs-dismiss="modal">
+
+                        Cancel
+
+                    </button>
+
+                    <button
+                        class="btn btn-success"
+                        type="submit">
+
+                        <i class="fas fa-save me-1"></i>
+
+                        Update Matches
+
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
 {% endblock %}
 
 {% block extra_js %}
 <script>
-function showFinishModal(matchId, homeTeam, awayTeam, homeScore, awayScore) {
-    document.getElementById('finishMatchName').textContent = homeTeam + ' vs ' + awayTeam;
-    document.getElementById('finishHomeLabel').textContent = homeTeam;
-    document.getElementById('finishAwayLabel').textContent = awayTeam;
-    document.getElementById('finishHomeScore').value = homeScore || 0;
-    document.getElementById('finishAwayScore').value = awayScore || 0;
-    document.getElementById('finishForm').action = '/admin/matches/' + matchId + '/finish';
-    new bootstrap.Modal(document.getElementById('finishModal')).show();
-}
+(function () {
+    "use strict";
+
+    /* ============================================================
+       Safe DOM helpers
+    ============================================================ */
+
+    function onReady(fn) {
+        if (document.readyState === "loading") {
+            document.addEventListener("DOMContentLoaded", fn, { once: true });
+        } else {
+            fn(); // script loaded after DOM is already ready
+        }
+    }
+
+    function $(id) {
+        return document.getElementById(id);
+    }
+
+    function $$(selector, scope) {
+        return Array.from((scope || document).querySelectorAll(selector));
+    }
+
+    /* Bootstrap modal helpers — never throw on missing modal/plugin */
+    function getModal(id) {
+        const el = $(id);
+        if (!el || typeof window.bootstrap === "undefined") return null;
+        return window.bootstrap.Modal.getOrCreateInstance
+            ? window.bootstrap.Modal.getOrCreateInstance(el)
+            : window.bootstrap.Modal.getInstance(el);
+    }
+
+    function showModal(id) {
+        const modal = getModal(id);
+        if (modal) modal.show();
+    }
+
+    function hideModal(id) {
+        const modal = getModal(id);
+        if (modal) modal.hide();
+    }
+
+    /* ============================================================
+       Finish match modal (called from inline onclick handlers)
+       — fully guarded: missing elements just no-op instead of throwing
+    ============================================================ */
+
+    window.showFinishModal = function (matchId, homeTeam, awayTeam, homeScore, awayScore) {
+        const nameEl = $("finishMatchName");
+        const homeLabel = $("finishHomeLabel");
+        const awayLabel = $("finishAwayLabel");
+        const homeInput = $("finishHomeScore");
+        const awayInput = $("finishAwayScore");
+        const form = $("finishForm");
+
+        if (!nameEl || !homeLabel || !awayLabel || !homeInput || !awayInput || !form) return;
+
+        nameEl.textContent = (homeTeam || "?") + " vs " + (awayTeam || "?");
+        homeLabel.textContent = homeTeam || "";
+        awayLabel.textContent = awayTeam || "";
+        homeInput.value = homeScore || 0;
+        awayInput.value = awayScore || 0;
+        form.action = "/admin/matches/" + encodeURIComponent(String(matchId)) + "/finish";
+
+        showModal("finishModal");
+    };
+
+    /* ============================================================
+       Admin matches page logic
+    ============================================================ */
+
+    onReady(function () {
+
+        // Guard: prevents double-initialisation if this block is
+        // injected/rendered twice on the same page
+        if (document.body && document.body.dataset.matchesAdminReady) return;
+        if (document.body) document.body.dataset.matchesAdminReady = "1";
+
+        const toggleBtn = $("toggleSelectionBtn");
+        const cancelBtn = $("cancelSelectionBtn");
+        const selectionInfo = $("selectionInfo");
+        const selectAll = $("selectAllMatches");
+        const bulkDateBtn = $("bulkDateBtn");
+        const keepTime = $("keepTime");
+        const bulkDateForm = $("bulkDateForm");
+        const selectionColumns = $$(".selection-column");
+
+        let selectionMode = false;
+
+        /* ---------- helpers ---------- */
+
+        function getCheckedMatches() {
+            return $$(".match-checkbox:checked");
+        }
+
+        function updateCounter() {
+            const checked = getCheckedMatches();
+            const counter = $("selectedCount");
+            const bulkCounter = $("bulkDateCount");
+            const total = $$(".match-checkbox").length;
+
+            if (counter) counter.textContent = checked.length;
+            if (bulkCounter) bulkCounter.textContent = checked.length;
+
+            if (selectionInfo) {
+                selectionInfo.classList.toggle("d-none", checked.length === 0);
+            }
+
+            if (selectAll) {
+                selectAll.checked = total > 0 && checked.length === total;
+            }
+        }
+
+        function clearSelection() {
+            $$(".match-checkbox").forEach(cb => { cb.checked = false; });
+            if (selectAll) selectAll.checked = false;
+            updateCounter();
+        }
+
+        function enterSelectionMode() {
+            selectionMode = true;
+            selectionColumns.forEach(col => col.classList.remove("d-none"));
+            if (toggleBtn) {
+                toggleBtn.innerHTML = '<i class="fas fa-times me-1"></i> Exit Selection';
+                toggleBtn.classList.remove("btn-outline-secondary");
+                toggleBtn.classList.add("btn-danger");
+            }
+        }
+
+        function exitSelectionMode() {
+            selectionMode = false;
+            selectionColumns.forEach(col => col.classList.add("d-none"));
+            clearSelection();
+            if (selectionInfo) selectionInfo.classList.add("d-none");
+            if (toggleBtn) {
+                toggleBtn.innerHTML = '<i class="fas fa-check-square me-1"></i> Select';
+                toggleBtn.classList.remove("btn-danger");
+                toggleBtn.classList.add("btn-outline-secondary");
+            }
+        }
+
+        /* ---------- selection mode ---------- */
+
+        if (toggleBtn) {
+            toggleBtn.addEventListener("click", () => {
+                selectionMode ? exitSelectionMode() : enterSelectionMode();
+            });
+        }
+
+        if (cancelBtn) {
+            cancelBtn.addEventListener("click", exitSelectionMode);
+        }
+
+        if (selectAll) {
+            selectAll.addEventListener("change", function () {
+                $$(".match-checkbox").forEach(cb => { cb.checked = this.checked; });
+                updateCounter();
+            });
+        }
+
+        // Delegated change listener — also covers rows re-rendered after
+        // an update, without needing to re-bind listeners
+        document.addEventListener("change", (e) => {
+            if (e.target && e.target.classList && e.target.classList.contains("match-checkbox")) {
+                updateCounter();
+            }
+        });
+
+        /* ---------- bulk date modal ---------- */
+
+        if (bulkDateBtn) {
+            bulkDateBtn.addEventListener("click", () => {
+                const checked = getCheckedMatches();
+                if (checked.length === 0) {
+                    alert("Please select at least one match.");
+                    return;
+                }
+                const counter = $("bulkDateCount");
+                if (counter) counter.textContent = checked.length;
+                showModal("bulkDateModal");
+            });
+        }
+
+        if (keepTime) {
+            keepTime.addEventListener("change", () => {
+                const container = $("newTimeContainer");
+                if (container) container.classList.toggle("d-none", keepTime.checked);
+            });
+        }
+
+        /* ---------- bulk date submit ---------- */
+
+        if (bulkDateForm) {
+            bulkDateForm.addEventListener("submit", async function (e) {
+                e.preventDefault();
+
+                const submitBtn = bulkDateForm.querySelector('button[type="submit"]');
+                if (submitBtn) {
+                    submitBtn.disabled = true; // prevent double submit
+                }
+
+                try {
+                    const ids = getCheckedMatches()
+                        .map(cb => parseInt(cb.value, 10))
+                        .filter(v => Number.isInteger(v)); // drop NaN
+
+                    if (ids.length === 0) {
+                        alert("Please select at least one match.");
+                        return;
+                    }
+
+                    const dateInput = $("bulkMatchDate");
+                    if (!dateInput || !dateInput.value) {
+                        alert("Please choose a date.");
+                        return;
+                    }
+
+                    const timeInput = $("bulkMatchTime");
+
+                    const payload = {
+                        match_ids: ids,
+                        date: dateInput.value,
+                        keep_time: keepTime ? keepTime.checked : false,
+                        time: timeInput && timeInput.value ? timeInput.value : null
+                    };
+
+                    const csrfToken = document.querySelector(
+                         '#bulkDateForm input[name="csrf_token"]'
+                    ).value;
+
+                    const response = await fetch("/admin/matches/bulk-update-date", {
+                        method: "POST",
+                        credentials: "same-origin",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "X-CSRFToken": csrfToken
+                        },
+                        body: JSON.stringify(payload)
+                    });
+
+                    // Response may not be JSON (500 HTML page, proxy error…)
+                    let result = null;
+                    try {
+                        result = await response.json();
+                    } catch (parseErr) {
+                        result = {
+                            success: false,
+                            message: "Unexpected server response (HTTP " + response.status + ")."
+                        };
+                    }
+
+                    if (result && result.success) {
+                        hideModal("bulkDateModal");
+                        alert(result.message || "Matches updated.");
+                        window.location.reload();
+                    } else {
+                        alert((result && result.message) || "Update failed.");
+                    }
+                } catch (err) {
+                    console.error("Bulk date update error:", err);
+                    alert("Server error while updating matches.");
+                } finally {
+                    if (submitBtn) submitBtn.disabled = false;
+                }
+            });
+        }
+    });
+})();
 </script>
 {% endblock %}
