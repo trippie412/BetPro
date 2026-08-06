@@ -10,55 +10,211 @@
             Place a Bet
         </h4>
         <p class="text-muted small mb-0">
-            Click on odds to add selections to your bet slip
+            Click on any odds to add selections to your bet slip.
         </p>
     </div>
 
-    <div>
-        <button class="btn btn-gold btn-sm" onclick="openBetSlip()">
-            <i class="fas fa-receipt me-1"></i>
-            Bet Slip
-            <span class="badge bg-dark ms-1" id="betslipCountHeader">0</span>
-        </button>
-    </div>
+    <button class="btn btn-warning btn-sm" onclick="openBetSlip()">
+        <i class="fas fa-receipt me-1"></i>
+        Bet Slip
+        <span class="badge bg-dark ms-1" id="betslipCountHeader">0</span>
+    </button>
 </div>
 
 <div class="row g-4">
 
+    <!-- MATCHES -->
     <div class="col-lg-9">
 
-        <!-- Sports Filter -->
+        <!-- SPORTS FILTER -->
+        <div class="glass-card p-3 mb-4">
 
-        ...
+            <div class="d-flex flex-wrap gap-2">
 
-        <!-- Matches -->
+                <a href="{{ url_for('betting.index') }}"
+                   class="btn btn-sm {% if not request.args.get('sport') %}btn-warning{% else %}btn-outline-secondary{% endif %}">
+                    All Sports
+                </a>
 
-        ...
+                {% for sport in sports %}
+
+                <a href="{{ url_for('betting.index', sport=sport.slug) }}"
+                   class="btn btn-sm {% if request.args.get('sport')==sport.slug %}btn-warning{% else %}btn-outline-secondary{% endif %}">
+                    <i class="fas {{ sport.icon }}"></i>
+                    {{ sport.name }}
+                </a>
+
+                {% endfor %}
+
+            </div>
+
+        </div>
+
+        {% if matches_by_league %}
+
+            {% for league_name, league_matches in matches_by_league.items() %}
+
+            <div class="glass-card mb-4">
+
+                <div class="p-3 border-bottom">
+
+                    <div class="d-flex justify-content-between">
+
+                        <strong>{{ league_name }}</strong>
+
+                        <small class="text-muted">
+                            {{ league_matches|length }} Matches
+                        </small>
+
+                    </div>
+
+                </div>
+
+                {% for match in league_matches %}
+
+                {% set odds = match.main_odds %}
+
+                <div class="p-3 border-bottom">
+
+                    <div class="row align-items-center">
+
+                        <div class="col-md-5">
+
+                            <div class="fw-bold">
+                                {{ match.home_team }}
+                            </div>
+
+                            <small class="text-muted">
+                                vs
+                            </small>
+
+                            <div class="fw-bold">
+                                {{ match.away_team }}
+                            </div>
+
+                            <small class="text-muted">
+                                {{ match.match_date.strftime("%d %b %Y %H:%M") }}
+                            </small>
+
+                        </div>
+
+                        <div class="col-md-7">
+
+                            {% if odds %}
+
+                            <div class="d-flex gap-2 justify-content-end flex-wrap">
+
+                                <button
+                                    class="btn btn-outline-warning team-odds"
+                                    data-match-id="{{ match.id }}"
+                                    data-match-name="{{ match.home_team }} vs {{ match.away_team }}"
+                                    data-selection-type="home_win"
+                                    data-selection-label="1 - {{ match.home_team }}"
+                                    data-odds="{{ odds.home_win }}">
+
+                                    1
+                                    <br>
+                                    {{ "%.2f"|format(odds.home_win) }}
+
+                                </button>
+
+                                {% if odds.draw %}
+
+                                <button
+                                    class="btn btn-outline-warning team-odds"
+                                    data-match-id="{{ match.id }}"
+                                    data-match-name="{{ match.home_team }} vs {{ match.away_team }}"
+                                    data-selection-type="draw"
+                                    data-selection-label="X - Draw"
+                                    data-odds="{{ odds.draw }}">
+
+                                    X
+                                    <br>
+                                    {{ "%.2f"|format(odds.draw) }}
+
+                                </button>
+
+                                {% endif %}
+
+                                <button
+                                    class="btn btn-outline-warning team-odds"
+                                    data-match-id="{{ match.id }}"
+                                    data-match-name="{{ match.home_team }} vs {{ match.away_team }}"
+                                    data-selection-type="away_win"
+                                    data-selection-label="2 - {{ match.away_team }}"
+                                    data-odds="{{ odds.away_win }}">
+
+                                    2
+                                    <br>
+                                    {{ "%.2f"|format(odds.away_win) }}
+
+                                </button>
+
+                            </div>
+
+                            {% else %}
+
+                            <span class="text-muted">
+                                Odds unavailable
+                            </span>
+
+                            {% endif %}
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                {% endfor %}
+
+            </div>
+
+            {% endfor %}
+
+        {% else %}
+
+        <div class="glass-card p-5 text-center">
+
+            <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+
+            <h5>No Matches Available</h5>
+
+            <p class="text-muted">
+                Check back later.
+            </p>
+
+        </div>
+
+        {% endif %}
 
     </div>
 
-    <!-- Desktop Bet Slip -->
+    <!-- BET SLIP -->
     <div class="col-lg-3 d-none d-lg-block">
-        <div class="glass-card position-sticky" style="top:80px;">
+
+        <div class="position-sticky" style="top:80px;">
+
             {% include "betting/bet_slip.html" %}
+
         </div>
+
     </div>
 
 </div>
 
-<!-- Floating Button -->
 <button
-    class="floating-betslip-btn"
     id="betslipFloatingBtn"
+    class="floating-betslip-btn"
     onclick="toggleBetSlip()">
 
     <i class="fas fa-receipt"></i>
 
     <span
-        class="badge bg-warning text-dark"
-        id="betslipFloatingCount">
+        id="betslipFloatingCount"
+        class="badge bg-warning text-dark">
 
-        {{ bet_slip_selections|length if bet_slip_selections is defined else 0 }}
+        0
 
     </span>
 
@@ -70,33 +226,37 @@
 
 <script>
 
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded",()=>{
 
-    function updateHeaderCount() {
+    function syncCounts(){
 
-        const header = document.getElementById("betslipCountHeader");
+        let count=0;
 
-        if (!header) return;
+        try{
 
-        try {
+            const saved=sessionStorage.getItem("betpro_betslip");
 
-            const saved = sessionStorage.getItem("betpro_betslip");
+            if(saved){
 
-            const selections = saved ? JSON.parse(saved) : [];
+                count=JSON.parse(saved).length;
 
-            header.textContent = selections.length;
+            }
 
-        } catch {
+        }catch(e){}
 
-            header.textContent = 0;
+        const header=document.getElementById("betslipCountHeader");
 
-        }
+        const floating=document.getElementById("betslipFloatingCount");
+
+        if(header) header.textContent=count;
+
+        if(floating) floating.textContent=count;
 
     }
 
-    updateHeaderCount();
+    syncCounts();
 
-    setInterval(updateHeaderCount,1000);
+    setInterval(syncCounts,1000);
 
 });
 

@@ -1,0 +1,96 @@
+/* ==========================
+   Bet Slip
+========================== */
+
+.betslip-panel{
+    display:flex;
+    flex-direction:column;
+    background:#171b22;
+    border:1px solid rgba(255,255,255,.08);
+    border-radius:14px;
+    overflow:hidden;
+    height:100%;
+}
+
+.betslip-header{
+    padding:18px;
+    border-bottom:1px solid rgba(255,255,255,.08);
+}
+
+.betslip-body{
+    flex:1;
+    overflow-y:auto;
+    padding:15px;
+}
+
+.betslip-empty{
+    padding:40px 20px;
+}
+
+.betslip-footer{
+    padding:18px;
+    border-top:1px solid rgba(255,255,255,.08);
+}
+
+/* Floating Button */
+
+.floating-betslip-btn{
+    position:fixed;
+    bottom:20px;
+    right:20px;
+    width:60px;
+    height:60px;
+    border:none;
+    border-radius:50%;
+    background:#f8c100;
+    color:#111;
+    z-index:1060;
+    display:none;
+    box-shadow:0 10px 25px rgba(0,0,0,.4);
+}
+
+/* Mobile */
+
+@media (max-width:991px){
+
+    .floating-betslip-btn{
+        display:flex;
+        align-items:center;
+        justify-content:center;
+    }
+
+    .betslip-panel{
+        position:fixed;
+        top:0;
+        right:-100%;
+        width:100%;
+        max-width:420px;
+        height:100vh;
+        z-index:1055;
+        transition:right .3s ease;
+        border-radius:0;
+    }
+
+    .betslip-panel.open{
+        right:0;
+    }
+
+}
+
+/* Desktop */
+
+@media (min-width:992px){
+
+    .floating-betslip-btn{
+        display:none;
+    }
+
+    .betslip-panel{
+        position:relative;
+        right:auto;
+        top:auto;
+        width:100%;
+        height:auto;
+    }
+
+}
