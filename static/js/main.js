@@ -107,20 +107,62 @@ function initBetSlip() {
 }
 
 function toggleBetSlip() {
+
+    // Mobile - use Bootstrap Offcanvas
+    if (window.innerWidth < 992) {
+        const offcanvas = document.getElementById('betslipOffcanvas');
+
+        if (offcanvas) {
+            const bsOffcanvas = bootstrap.Offcanvas.getOrCreateInstance(offcanvas);
+            bsOffcanvas.show();
+            return;
+        }
+    }
+
+    // Desktop - slide panel
     const panel = document.getElementById('betslipPanelInline');
+
     if (panel) {
         panel.classList.toggle('open');
     }
 }
 
 function openBetSlip() {
+
+    if (window.innerWidth < 992) {
+
+        const offcanvas = document.getElementById('betslipOffcanvas');
+
+        if (offcanvas) {
+            bootstrap.Offcanvas.getOrCreateInstance(offcanvas).show();
+            return;
+        }
+    }
+
     const panel = document.getElementById('betslipPanelInline');
-    if (panel) panel.classList.add('open');
+
+    if (panel) {
+        panel.classList.add('open');
+    }
 }
 
 function closeBetSlip() {
+
+    if (window.innerWidth < 992) {
+
+        const offcanvas = document.getElementById('betslipOffcanvas');
+
+        if (offcanvas) {
+            bootstrap.Offcanvas.getOrCreateInstance(offcanvas).hide();
+            return;
+        }
+    }
+
     const panel = document.getElementById('betslipPanelInline');
-    if (panel) panel.classList.remove('open');
+
+    if (panel) {
+        panel.classList.remove('open');
+    }
 }
 
 function addToBetSlip(matchId, matchName, selectionType, selectionLabel, odds) {
