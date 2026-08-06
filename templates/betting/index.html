@@ -162,35 +162,71 @@
   </div>
 
 </div>
-
-{% endblock %}
 {% block extra_js %}
 <script>
+
+// =============================
+// Open mobile bet slip
+// =============================
+function openMobileBetSlip() {
+    const offcanvasEl = document.getElementById('betslipOffcanvas');
+
+    if (!offcanvasEl || typeof bootstrap === 'undefined') return;
+
+    bootstrap.Offcanvas
+        .getOrCreateInstance(offcanvasEl)
+        .show();
+}
+
 document.addEventListener('DOMContentLoaded', function () {
 
     let selections = [];
 
-    const countEls  = document.querySelectorAll('.betslip-count');
+    const countEls   = document.querySelectorAll('.betslip-count');
     const containers = document.querySelectorAll('.betslip-selections');
-    const emptyEls  = document.querySelectorAll('.betslip-empty');
-    const areaEls   = document.querySelectorAll('.betslip-selections-area');
-    const footerEls = document.querySelectorAll('.betslip-footer');
-    const oddsEls   = document.querySelectorAll('.betslip-total-odds');
+    const emptyEls   = document.querySelectorAll('.betslip-empty');
+    const areaEls    = document.querySelectorAll('.betslip-selections-area');
+    const footerEls  = document.querySelectorAll('.betslip-footer');
+    const oddsEls    = document.querySelectorAll('.betslip-total-odds');
+    const stakeInput = document.getElementById('betslipStake');
+    const potentialEl = document.getElementById('betslipPotential');
 
     // =============================
-    // Render Bet Slip
+    // Calculate potential win
+    // =============================
+    function calculatePotential() {
+
+        if (!stakeInput || !potentialEl) return;
+
+        const stake = parseFloat(stakeInput.value) || 0;
+
+        const totalOdds = selections.reduce((t, s) => t * s.odds, 1);
+
+        const potential = stake * totalOdds;
+
+        potentialEl.textContent = 'KES ' + potential.toFixed(2);
+    }
+
+    // =============================
+    // Render bet slip
     // =============================
     function renderBetSlip() {
 
-        // Update counters
-        countEls.forEach(el => el.textContent = selections.length);
+        countEls.forEach(el => {
+            el.textContent = selections.length;
+        });
 
-        // Empty state
         if (selections.length === 0) {
+
             emptyEls.forEach(el => el.style.display = 'block');
             areaEls.forEach(el => el.style.display = 'none');
             footerEls.forEach(el => el.style.display = 'none');
             oddsEls.forEach(el => el.textContent = '0.00');
+
+            if (potentialEl) {
+                potentialEl.textContent = 'KES 0.00';
+            }
+
             return;
         }
 
@@ -198,10 +234,8 @@ document.addEventListener('DOMContentLoaded', function () {
         areaEls.forEach(el => el.style.display = 'block');
         footerEls.forEach(el => el.style.display = 'block');
 
-        // Calculate total odds once
-        let totalOdds = selections.reduce((total, sel) => total * sel.odds, 1);
+        const totalOdds = selections.reduce((t, s) => t * s.odds, 1);
 
-        // Render selections
         containers.forEach(container => {
 
             container.innerHTML = '';
@@ -230,15 +264,16 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         });
 
-        // Update total odds
         oddsEls.forEach(el => {
             el.textContent = totalOdds.toFixed(2);
         });
 
-        // Remove buttons
+        calculatePotential();
+
+        // Remove selection buttons
         document.querySelectorAll('.remove-selection').forEach(btn => {
 
-            btn.addEventListener('click', function () {
+            btn.onclick = function () {
 
                 const index = parseInt(this.dataset.index);
 
@@ -246,7 +281,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 const removed = selections[index];
 
-                // Remove highlight from odds button
                 document.querySelectorAll('.team-odds').forEach(b => {
 
                     if (
@@ -259,8 +293,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 });
 
                 selections.splice(index, 1);
+
                 renderBetSlip();
-            });
+            };
         });
     }
 
@@ -269,7 +304,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // =============================
     document.querySelectorAll('.team-odds').forEach(btn => {
 
-        btn.addEventListener('click', function () {
+        btn.onclick = function () {
 
             const match = this.dataset.matchName;
             const label = this.dataset.selectionLabel;
@@ -277,12 +312,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
             if (!match || !label || isNaN(odds)) return;
 
-            // Check if this exact selection is already selected
             const existingIndex = selections.findIndex(
                 s => s.match === match && s.label === label
             );
 
-            // Remove highlight from all odds of this match
+            // Remove highlight from this match
             document.querySelectorAll('.team-odds').forEach(b => {
 
                 if (b.dataset.matchName === match) {
@@ -293,34 +327,33 @@ document.addEventListener('DOMContentLoaded', function () {
 
             if (existingIndex !== -1) {
 
-                // Unselect if tapped again
+                // Unselect same odd
                 selections.splice(existingIndex, 1);
 
             } else {
 
-                // Remove any previous selection for this match
+                // Replace previous selection for same match
                 selections = selections.filter(s => s.match !== match);
 
-                // Add new selection
                 selections.push({ match, label, odds });
 
-                // Highlight selected button
                 this.classList.remove('btn-outline-warning');
                 this.classList.add('btn-warning');
 
-                // Open mobile bet slip automatically
-                const offcanvasEl = document.getElementById('betslipOffcanvas');
-
-                if (offcanvasEl && window.innerWidth < 992) {
-                    bootstrap.Offcanvas
-                        .getOrCreateInstance(offcanvasEl)
-                        .show();
+                // Auto open on mobile
+                if (window.innerWidth < 992) {
+                    openMobileBetSlip();
                 }
             }
 
             renderBetSlip();
-        });
+        };
     });
+
+    // Stake input calculation
+    if (stakeInput) {
+        stakeInput.addEventListener('input', calculatePotential);
+    }
 
     // Initial render
     renderBetSlip();
