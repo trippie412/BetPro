@@ -1,4 +1,3 @@
-
 // ===== FORCE MOBILE BET SLIP =====
 window.openMobileBetSlip = function () {
     alert('MOBILE BUTTON CLICKED');
