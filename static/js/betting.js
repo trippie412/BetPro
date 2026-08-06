@@ -1,6 +1,5 @@
-// ===== FORCE MOBILE BET SLIP =====
+// ===== FINAL MOBILE BET SLIP FIX =====
 window.openMobileBetSlip = function () {
-    alert('MOBILE BUTTON CLICKED');
 
     const el = document.getElementById('betslipOffcanvas');
 
@@ -9,7 +8,17 @@ window.openMobileBetSlip = function () {
         return;
     }
 
-    el.classList.add('show');
-    el.style.display = 'block';
-    el.style.visibility = 'visible';
+    // Use Bootstrap offcanvas properly
+    if (typeof bootstrap !== 'undefined' && bootstrap.Offcanvas) {
+
+        const instance = bootstrap.Offcanvas.getOrCreateInstance(el);
+        instance.show();
+
+    } else {
+
+        // Fallback if Bootstrap is missing
+        el.classList.add('show');
+        el.style.display = 'block';
+        el.style.visibility = 'visible';
+    }
 };
