@@ -250,7 +250,7 @@ function addToBetSlip(matchId, matchName, selectionType, selectionLabel, odds) {
         });
         updateOddsButtonState(matchId, selectionType, true);
     }
-
+    
     saveBetSlip();
     updateBetSlipUI();
     openBetSlip();
@@ -284,6 +284,7 @@ function saveBetSlip() {
 
 function updateOddsButtonState(matchId, selectionType, selected) {
     const selector = `button[data-match-id="${matchId}"][data-selection-type="${selectionType}"]`;
+
     document.querySelectorAll(selector).forEach(function(btn) {
         if (selected) {
             btn.classList.add('selected');
