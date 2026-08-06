@@ -169,9 +169,24 @@
 <script>
 // Open mobile bet slip
 function openMobileBetSlip() {
+
     const offcanvasEl = document.getElementById('betslipOffcanvas');
-    if (!offcanvasEl || typeof bootstrap === 'undefined') return;
-    bootstrap.Offcanvas.getOrCreateInstance(offcanvasEl).show();
+
+    if (!offcanvasEl) {
+        alert('Mobile bet slip not found');
+        return;
+    }
+
+    if (typeof bootstrap === 'undefined') {
+        alert('Bootstrap JS not loaded');
+        return;
+    }
+
+    // Small delay improves mobile reliability
+    setTimeout(function () {
+        const instance = bootstrap.Offcanvas.getOrCreateInstance(offcanvasEl);
+        instance.show();
+    }, 50);
 }
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -312,4 +327,20 @@ document.addEventListener('DOMContentLoaded', function () {
     renderBetSlip();
 });
 </script>
+{% endblock %}
+{% block extra_css %}
+<style>
+#betslipFloatingBtn{
+    z-index:99999 !important;
+    pointer-events:auto !important;
+}
+
+#betslipOffcanvas{
+    z-index:99998 !important;
+}
+
+.offcanvas-backdrop{
+    z-index:99997 !important;
+}
+</style>
 {% endblock %}
