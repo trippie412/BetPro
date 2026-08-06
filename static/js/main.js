@@ -304,7 +304,7 @@ function updateBetSlipUI() {
     // Bet slip elements (Desktop + Mobile)
     // =====================================================
 
-    const containers = document.querySelectorAll('#betslipSelections');
+    const containers = document.querySelectorAll('.betslipSelections');
 
     const countEls = document.querySelectorAll('#betslipCount');
     const countEls2 = document.querySelectorAll('#betslipCount2');

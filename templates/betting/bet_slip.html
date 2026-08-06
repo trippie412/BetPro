@@ -1,164 +1,176 @@
-<div id="betslipPanelInline" class="betslip-panel">
+<!-- ===================================================== -->
+<!-- DESKTOP BET SLIP -->
+<!-- ===================================================== -->
+<div id="betslipPanelInline" class="betslip-panel d-none d-lg-flex flex-column">
 
-    <!-- ========================= -->
-    <!-- HEADER -->
-    <!-- ========================= -->
-    <div class="betslip-header d-flex justify-content-between align-items-center">
-
+    <!-- Header -->
+    <div class="betslip-header d-flex justify-content-between align-items-center p-3 border-bottom">
         <div>
             <h5 class="fw-bold mb-0">
                 <i class="fas fa-receipt text-warning me-2"></i>
                 Bet Slip
-                <span id="betslipCount" class="badge bg-warning text-dark ms-2">0</span>
+                <span class="betslip-count badge bg-warning text-dark ms-2">0</span>
             </h5>
-
-            <small class="text-muted">
-                Your selected bets
-            </small>
+            <small class="text-muted">Your selected bets</small>
         </div>
-
-        <button
-            type="button"
-            class="btn btn-outline-light btn-sm d-lg-none"
-            onclick="closeBetSlip()">
-
-            <i class="fas fa-times"></i>
-
-        </button>
-
     </div>
 
-
-    <!-- ========================= -->
-    <!-- EMPTY STATE -->
-    <!-- ========================= -->
-    <div
-        id="betslipEmpty"
-        class="betslip-empty text-center">
-
+    <!-- Empty state -->
+    <div class="betslip-empty text-center p-4">
         <i class="fas fa-ticket-alt fa-3x text-secondary mb-3"></i>
-
-        <h6 class="fw-bold">
-            Your Bet Slip is Empty
-        </h6>
-
-        <p class="text-muted mb-0">
-            Tap any odds to add a selection.
-        </p>
-
+        <h6 class="fw-bold">Your Bet Slip is Empty</h6>
+        <p class="text-muted mb-0">Tap any odds to add a selection.</p>
     </div>
 
-
-    <!-- ========================= -->
-    <!-- SELECTIONS -->
-    <!-- ========================= -->
-    <div
-        id="betslipSelectionsArea"
-        class="betslip-body"
-        style="display:none;">
-
-        <div id="betslipSelections"></div>
-
+    <!-- Selections -->
+    <div class="betslip-selections-area flex-grow-1 p-3" style="display:none;">
+        <div class="betslip-selections"></div>
     </div>
 
-
-    <!-- ========================= -->
-    <!-- FOOTER -->
-    <!-- ========================= -->
-    <div
-        id="betslipFooter"
-        class="betslip-footer"
-        style="display:none;">
+    <!-- Footer -->
+    <div class="betslip-footer p-3 border-top" style="display:none;">
 
         <div class="d-flex justify-content-between mb-2">
             <span class="text-muted">Bet Type</span>
-            <strong id="betslipType">Single</strong>
+            <strong class="betslip-type">Single</strong>
         </div>
 
         <div class="d-flex justify-content-between mb-2">
             <span class="text-muted">Selections</span>
-            <strong id="betslipCount2">0</strong>
+            <strong class="betslip-count-2">0</strong>
         </div>
 
         <div class="d-flex justify-content-between mb-3">
             <span class="text-muted">Total Odds</span>
-            <strong
-                id="betslipTotalOdds"
-                class="text-warning">
-                0.00
-            </strong>
+            <strong class="betslip-total-odds text-warning">0.00</strong>
         </div>
 
         <div class="mb-3">
-
-            <label class="form-label">
-                Stake (KES)
-            </label>
-
-            <input
-                id="betslipStake"
-                type="number"
-                class="form-control"
-                min="10"
-                step="10"
-                placeholder="Minimum 10"
-                oninput="calculatePotential()">
-
+            <label class="form-label">Stake (KES)</label>
+            <input type="number"
+                   class="form-control betslip-stake"
+                   min="10"
+                   step="10"
+                   placeholder="Minimum 10"
+                   oninput="calculatePotential()">
         </div>
 
         <div class="alert alert-success d-flex justify-content-between align-items-center">
-
-            <span>
-                Potential Win
-            </span>
-
-            <strong id="betslipPotential">
-                KES 0.00
-            </strong>
-
+            <span>Potential Win</span>
+            <strong class="betslip-potential">KES 0.00</strong>
         </div>
 
         <div class="form-check mb-3">
-
-            <input
-                class="form-check-input"
-                type="checkbox"
-                id="betslipUseBonus">
-
-            <label
-                class="form-check-label"
-                for="betslipUseBonus">
-
-                Use Bonus Balance
-
-            </label>
-
+            <input class="form-check-input betslip-use-bonus"
+                   type="checkbox">
+            <label class="form-check-label">Use Bonus Balance</label>
         </div>
 
-        <button
-            id="betslipPlaceBtn"
-            type="button"
-            class="btn btn-warning w-100 fw-bold mb-2"
-            onclick="placeBet()">
-
+        <button type="button"
+                class="btn btn-warning w-100 fw-bold mb-2"
+                onclick="placeBet()">
             <i class="fas fa-check-circle me-2"></i>
-
             Place Bet
-
         </button>
 
-        <button
-            id="betslipClear"
-            type="button"
-            class="btn btn-outline-danger w-100"
-            onclick="clearBetSlip()">
-
+        <button type="button"
+                class="btn btn-outline-danger w-100"
+                onclick="clearBetSlip()">
             <i class="fas fa-trash me-2"></i>
-
             Clear Bet Slip
-
         </button>
 
     </div>
+</div>
 
+
+<!-- ===================================================== -->
+<!-- MOBILE BET SLIP OFFCANVAS -->
+<!-- ===================================================== -->
+<div class="offcanvas offcanvas-end d-lg-none"
+     tabindex="-1"
+     id="betslipOffcanvas">
+
+    <div class="offcanvas-header border-bottom">
+        <h5 class="offcanvas-title fw-bold">
+            <i class="fas fa-receipt text-warning me-2"></i>
+            Bet Slip
+            <span class="betslip-count badge bg-warning text-dark ms-2">0</span>
+        </h5>
+
+        <button type="button"
+                class="btn-close btn-close-white"
+                data-bs-dismiss="offcanvas"></button>
+    </div>
+
+    <div class="offcanvas-body d-flex flex-column p-0">
+
+        <!-- Empty state -->
+        <div class="betslip-empty text-center p-4">
+            <i class="fas fa-ticket-alt fa-3x text-secondary mb-3"></i>
+            <h6 class="fw-bold">Your Bet Slip is Empty</h6>
+            <p class="text-muted mb-0">Tap any odds to add a selection.</p>
+        </div>
+
+        <!-- Selections -->
+        <div class="betslip-selections-area flex-grow-1 p-3" style="display:none;">
+            <div class="betslip-selections"></div>
+        </div>
+
+        <!-- Footer -->
+        <div class="betslip-footer p-3 border-top" style="display:none;">
+
+            <div class="d-flex justify-content-between mb-2">
+                <span class="text-muted">Bet Type</span>
+                <strong class="betslip-type">Single</strong>
+            </div>
+
+            <div class="d-flex justify-content-between mb-2">
+                <span class="text-muted">Selections</span>
+                <strong class="betslip-count-2">0</strong>
+            </div>
+
+            <div class="d-flex justify-content-between mb-3">
+                <span class="text-muted">Total Odds</span>
+                <strong class="betslip-total-odds text-warning">0.00</strong>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Stake (KES)</label>
+                <input type="number"
+                       class="form-control betslip-stake"
+                       min="10"
+                       step="10"
+                       placeholder="Minimum 10"
+                       oninput="calculatePotential()">
+            </div>
+
+            <div class="alert alert-success d-flex justify-content-between align-items-center">
+                <span>Potential Win</span>
+                <strong class="betslip-potential">KES 0.00</strong>
+            </div>
+
+            <div class="form-check mb-3">
+                <input class="form-check-input betslip-use-bonus"
+                       type="checkbox">
+                <label class="form-check-label">Use Bonus Balance</label>
+            </div>
+
+            <button type="button"
+                    class="btn btn-warning w-100 fw-bold mb-2"
+                    onclick="placeBet()">
+                <i class="fas fa-check-circle me-2"></i>
+                Place Bet
+            </button>
+
+            <button type="button"
+                    class="btn btn-outline-danger w-100"
+                    onclick="clearBetSlip()">
+                <i class="fas fa-trash me-2"></i>
+                Clear Bet Slip
+            </button>
+
+        </div>
+
+    </div>
 </div>
